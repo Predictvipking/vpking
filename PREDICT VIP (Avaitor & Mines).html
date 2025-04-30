@@ -1,0 +1,1554 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict VIP (Optimized Hybrid Model)</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #111827; color: #cbd5e1; /* Default text color */}
+        .overflow-hidden { overflow: hidden !important; }
+
+        /* Animations */
+        .animate-gradient-x { animation: gradient-x 5s ease infinite; background-size: 200% 200%; }
+        @keyframes gradient-x { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .loader { border: 4px solid #f3f3f3; border-radius: 50%; border-top: 4px solid #3498db; width: 20px; height: 20px; animation: spin 2s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Utility */
+        .hidden { display: none !important; }
+
+        /* Popups */
+        .popup-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .popup-container.hidden { display: none; }
+        .popup-content { padding: 1.5rem; border-radius: 1rem; max-width: 90%; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); color: white; text-align: center; position: relative; }
+        #win-menu-container .popup-content { width: 90%; max-width: 420px; background: linear-gradient(135deg, #1e3a8a, #3b82f6, #60a5fa, #1e3a8a); background-size: 300% 300%; animation: gradient-x 8s ease infinite; }
+        .close-popup { position: absolute; top: 0.5rem; right: 0.5rem; font-size: 1.5rem; cursor: pointer; color: white; background: none; border: none; line-height: 1; padding: 0.2rem; }
+
+        /* Wingo Predictor Popup Styles */
+        #win-menu-container h2 { font-size: 1.3rem; margin-bottom: 0.8rem; }
+        #win-menu-container p { font-size: 0.9rem; margin-bottom: 0.5rem; line-height: 1.4; }
+        .prediction-history { margin-top: 1rem; max-height: 250px; overflow-y: auto; background: rgba(255, 255, 255, 0.1); padding: 0.75rem; border-radius: 0.5rem; overflow-x: hidden; }
+        .history-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+        .history-table th { background: rgba(30, 58, 138, 0.8); color: white; padding: 0.4rem; font-weight: bold; text-align: center; position: sticky; top: 0; z-index: 1; font-size: 0.78rem; white-space: nowrap; }
+        .history-table td { padding: 0.4rem 0.3rem; border-bottom: 1px solid rgba(255, 255, 255, 0.2); font-size: 0.75rem; text-align: center; vertical-align: middle; }
+        .history-table td:first-child { word-break: break-all; text-align: left; padding-left: 0.5rem; }
+        .status-box { min-width: 55px; height: 22px; padding: 0 0.3rem; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; margin: auto; box-sizing: border-box; }
+        .history-item.pending td { background: rgba(250, 204, 21, 0.1); }
+        .history-item.win td { background: rgba(34, 197, 94, 0.1); }
+        .history-item.loss td { background: rgba(239, 68, 68, 0.1); }
+        .color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin: 0 3px; vertical-align: middle; flex-shrink: 0; }
+        .history-table td:nth-child(3) { white-space: nowrap; display: flex; align-items: center; justify-content: center; } /* Color column */
+        .history-table td:nth-child(3) span { display: inline-block; } /* Color text */
+        .history-table td:nth-child(3) i { margin-left: 4px; } /* Color icon */
+        .history-table td:nth-child(2) i { margin-left: 4px; } /* B/S icon */
+        .history-item.pending .status-box { background: #facc15; color: #1e3a8a; }
+        .history-item.win .status-box { background: #22c55e; color: white; }
+        .history-item.loss .status-box { background: #ef4444; color: white; }
+        #prediction-display { margin-top: 0.5rem; padding: 0.75rem; background: rgba(0,0,0,0.2); border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.1); min-height: 60px; /* Ensure space */ }
+        .prediction-text { font-size: 1.5rem; font-weight: bold; }
+        .prediction-text .big { color: #fde047; }
+        .prediction-text .small { color: #60a5fa; }
+        .prediction-text .red { color: #f87171; }
+        .prediction-text .green { color: #4ade80; }
+        .prediction-text .violet { color: #a855f7; } /* Added Violet color */
+
+        /* Tabs */
+        .main-tabs { background-color: rgba(30, 58, 138, 0.8); backdrop-filter: blur(5px); border-bottom: 1px solid #3b82f6; }
+        .tab-button { background-color: transparent; color: #93c5fd; padding: 0.75rem 1rem; border: none; cursor: pointer; transition: all 0.3s ease; font-weight: 500; border-bottom: 3px solid transparent; white-space: nowrap; }
+        .tab-button:hover { background-color: rgba(59, 130, 246, 0.3); color: white; }
+        .tab-button.active { color: white; border-bottom-color: #facc15; font-weight: 700; }
+        .tab-content { min-height: 300px; padding-top: 1.5rem; }
+
+        /* Aviator Styles */
+        #aviator-content .aviator-container { font-family: 'Poppins', sans-serif; background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); color: #cbd5e1; border-radius: 0.5rem; padding: 1rem; border: 1px solid #374151; }
+        #aviator-content textarea::-webkit-scrollbar, #aviator-content ul::-webkit-scrollbar { width: 5px; }
+        #aviator-content textarea::-webkit-scrollbar-track, #aviator-content ul::-webkit-scrollbar-track { background: #374151; border-radius: 10px; }
+        #aviator-content textarea::-webkit-scrollbar-thumb, #aviator-content ul::-webkit-scrollbar-thumb { background: #6b7280; border-radius: 10px; }
+        #aviator-content .stat-value, #aviator-content #aviatorHistoryList li { font-family: 'Roboto Mono', monospace; }
+        #aviator-content #aviatorHistoryList li { border-bottom: 1px solid #374151; padding: 3px 0; text-align: center; }
+        #aviator-content #aviatorHistoryList li:last-child { border-bottom: none; }
+        #aviator-content #aviatorHistoryList li:hover { background-color: rgba(51, 65, 85, 0.5); }
+        #aviator-content .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        @media (min-width: 768px) { #aviator-content .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        #aviator-content .simulation-results { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #374151; }
+        #aviator-content .sim-item-box { flex-basis: 120px; min-width: 100px; }
+        #aviator-content #aviatorHistoryInput { border-color: #475569; background-color: #0f172a; color: #e2e8f0; font-family: 'Roboto Mono', monospace; width: 100%; padding: 0.5rem; border-radius: 0.375rem; border-width: 1px; }
+        #aviator-content #aviatorHistoryInput:focus { --tw-ring-color: #06b6d4; border-color: #06b6d4; box-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color); outline: 2px solid transparent; outline-offset: 2px; }
+        #aviator-content #aviatorHistoryList { background-color: rgba(15, 23, 42, 0.5); color: #cbd5e1; border-color: #374155; border-width: 1px; border-radius: 0.375rem; }
+        #aviator-content #aviatorResultsArea .stats-grid > div, #aviator-content .simulation-results .sim-item-box { background-color: rgba(51, 65, 85, 0.3); border: 1px solid #374151; color: #cbd5e1; }
+        #aviator-content #aviatorResultsArea .stats-grid > div p:first-child, #aviator-content .simulation-results .sim-item-box p:first-child { color: #94a3b8; }
+        #aviator-content #aviatorTotalRounds, #aviator-content #aviatorAverageMultiplier { color: #67e8f9; }
+        #aviator-content #aviatorBelow1_5x { color: #f87171; } #aviator-content #aviatorBelow2_0x { color: #fb923c; } #aviator-content #aviatorAbove5_0x { color: #4ade80; } #aviator-content #aviatorAbove10_0x { color: #a3e635; } #aviator-content #aviatorLowStreak { color: #5eead4; } #aviator-content #aviatorHighStreak { color: #c084fc; } #aviator-content #aviatorSimWins { color: #4ade80; } #aviator-content #aviatorSimLosses { color: #f87171; } #aviator-content #aviatorSimWinRate { color: #93c5fd; }
+        #aviator-content #aviatorErrorMsg { color: #f87171; min-height: 1.25em; /* Reserve space */ }
+        #aviator-content #aviatorAnalyzeBtn { display: inline-flex; background-color: #0891b2; color: white; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 500; transition: background-color 0.2s; cursor: pointer; }
+        #aviator-content #aviatorAnalyzeBtn:hover { background-color: #0e7490; }
+        #aviator-content #aviatorClearHistoryBtn { display: inline-flex; background-color: #dc2626; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; transition: background-color 0.2s; cursor: pointer; }
+        #aviator-content #aviatorClearHistoryBtn:hover { background-color: #b91c1c; }
+        #aviator-content #aviatorVisualizeBtn { display: inline-flex; background-color: #8b5cf6; color: white; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 500; transition: background-color 0.2s; cursor: pointer; } /* Changed color slightly */
+        #aviator-content #aviatorVisualizeBtn:hover { background-color: #7c3aed; }
+
+        /* Chart Popup */
+        #canvas-container { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.9); padding: 1.5rem; border-radius: 0.5rem; z-index: 2000; width: 90%; max-width: 600px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        #canvas-container.active { display: block; }
+        #canvas-container canvas { max-height: 60vh; }
+        #close-canvas { margin-top: 1rem; background-color: #dc2626; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; transition: background-color 0.2s; cursor: pointer; }
+        #close-canvas:hover { background-color: #b91c1c; }
+
+        /* Mines Predictor Styles */
+        #mines-content .mines-container { font-family: 'Poppins', sans-serif; background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px); color: #cbd5e1; border-radius: 0.5rem; padding: 1rem; border: 1px solid #374151; }
+        .mines-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; max-width: 340px; margin: 1.5rem auto; aspect-ratio: 1 / 1; }
+        .mines-tile { width: 100%; height: auto; aspect-ratio: 1 / 1; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: background 0.25s ease, transform 0.15s ease, border-color 0.25s ease, box-shadow 0.25s ease; font-size: 1.6em; font-weight: bold; box-sizing: border-box; border: 1px solid rgba(255, 255, 255, 0.2); position: relative; overflow: hidden; color: transparent; cursor: default; }
+        .mines-tile.predicted-safe { border: 2px solid #4ade80; box-shadow: 0 0 15px rgba(74, 222, 128, 0.6); background: rgba(74, 222, 128, 0.1); }
+        .mines-tile.predicted-mine { border: 2px solid #f87171; box-shadow: 0 0 15px rgba(248, 113, 113, 0.6); background: rgba(248, 113, 113, 0.1); }
+        .mines-controls { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem; }
+        .mines-controls label { color: #cbd5e1; font-size: 0.9rem; }
+        .mines-controls input[type="number"] { width: 70px; padding: 0.5rem; font-size: 0.9rem; background: #0f172a; border: 1px solid #475569; color: #e2e8f0; border-radius: 0.375rem; text-align: center; }
+        .mines-controls input[type="number"]:focus { border-color: #06b6d4; outline: none; box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.4); }
+        .mines-predict-btn { display: inline-flex; background-color: #3b82f6; color: white; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 500; transition: background-color 0.2s; cursor: pointer; }
+        .mines-predict-btn:hover { background-color: #2563eb; }
+        .mines-prediction-summary { font-size: 0.9rem; color: #cbd5e1; text-align: center; padding: 0.75rem; background: rgba(0,0,0,0.2); border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 1rem; min-height: 45px; }
+        .mines-error { color: #f87171; text-align: center; margin-top: 0.5rem; font-size: 0.9rem; min-height: 1.25em; /* Reserve space */ }
+
+        /* General Button Styles */
+        .button { transition: background-color 0.3s ease, transform 0.2s ease; }
+        .button:hover { transform: scale(1.05); }
+
+        /* Scrollbar Styles */
+         ::-webkit-scrollbar { width: 5px; height: 5px; }
+         ::-webkit-scrollbar-track { background: #374151; border-radius: 10px; }
+         ::-webkit-scrollbar-thumb { background: #6b7280; border-radius: 10px; }
+         ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    </style>
+</head>
+<body class="text-white relative bg-gray-900">
+    <div id="particles-js" class="fixed inset-0 z-[-1]"></div>
+
+    <header class="predict-wingo-section py-4 text-center relative z-10">
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 animate-gradient-x">
+            PREDICT VIP
+        </h1>
+        <div class="mt-1 text-sm md:text-base text-blue-200 font-semibold">
+            Optimized Predictions (Wingo Auto / Aviator Manual / Mines Predictor)
+        </div>
+    </header>
+
+    <nav class="main-tabs flex flex-wrap justify-between items-center sticky top-0 z-20 px-2 md:px-4">
+        <div class="flex justify-center flex-wrap">
+            <button class="tab-button active" data-tab="homepage">Homepage</button>
+            <button class="tab-button" data-tab="prediction">Prediction</button>
+            <button class="tab-button" data-tab="aviator">Aviator</button>
+            <button class="tab-button" data-tab="mines">Mines</button>
+            <button class="tab-button" data-tab="about">About tool</button>
+        </div>
+        <div class="flex items-center space-x-3 md:space-x-4">
+            <a href="https://wa.me/916290530153" target="_blank" rel="noopener noreferrer" title="WhatsApp" class="text-blue-300 hover:text-white transition duration-200">
+                <i class="fa-brands fa-whatsapp text-xl md:text-2xl"></i>
+            </a>
+            <a href="mailto:vippredictking@zohomail.in" title="Email" class="text-blue-300 hover:text-white transition duration-200">
+                <i class="fa-solid fa-envelope text-xl md:text-2xl"></i>
+            </a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-6 relative z-10">
+        <div id="tab-content-container">
+
+            <div id="homepage-content" class="tab-content">
+                <h2 class="text-2xl font-semibold text-yellow-400 mb-4 text-center">Welcome to Predict VIP</h2>
+                <p class="text-center text-lg text-blue-200 mb-8">Select a tab to navigate and explore our optimized tools.</p>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div class="bg-blue-900/30 p-4 rounded-lg border border-blue-700/50 transform hover:scale-105 transition duration-300">
+                        <i class="fas fa-chart-line text-4xl text-yellow-400 mb-3"></i>
+                        <h3 class="text-xl font-semibold text-white mb-2">Wingo Auto-Predictions</h3>
+                        <p class="text-blue-200 text-sm">Start the auto predictor with Hybrid Model.</p>
+                    </div>
+                    <div class="bg-blue-900/30 p-4 rounded-lg border border-blue-700/50 transform hover:scale-105 transition duration-300">
+                        <i class="fas fa-plane-departure text-4xl text-cyan-400 mb-3"></i>
+                        <h3 class="text-xl font-semibold text-white mb-2">Aviator Analysis</h3>
+                        <p class="text-blue-200 text-sm">Input crash history for advanced stats.</p>
+                    </div>
+                    <div class="bg-blue-900/30 p-4 rounded-lg border border-blue-700/50 transform hover:scale-105 transition duration-300">
+                        <i class="fas fa-bomb text-4xl text-green-400 mb-3"></i>
+                        <h3 class="text-xl font-semibold text-white mb-2">Mines Predictor</h3>
+                        <p class="text-blue-200 text-sm">Predict safe tiles for Mines game.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="prediction-content" class="tab-content hidden">
+                <section class="container mx-auto px-4 py-10 relative text-center">
+                    <h2 class="text-2xl font-semibold text-yellow-400 mb-6">Wingo Auto Predictor (1min)</h2>
+                    <div class="flex flex-wrap justify-center items-center gap-3 mb-10">
+                        <button id="start-prediction-button" class="bg-yellow-400 hover:bg-yellow-500 text-blue-900 rounded-full px-8 py-3 font-bold text-xl button shadow-lg">
+                            Start Prediction
+                        </button>
+                    </div>
+                    <p class="text-center text-blue-200 mt-4">Click above to start predictions with Hybrid Model.</p>
+                    <p id="api-status-message" class="text-sm text-red-400 mt-4 hidden"></p> <p class="text-center text-xs text-slate-400 mt-6">Note: Uses Hybrid Model with real-time data. Accuracy not guaranteed.</p>
+                </section>
+            </div>
+
+            <div id="aviator-content" class="tab-content hidden">
+                <div class="aviator-container">
+                    <div class="text-center mb-6">
+                        <h1 class="text-xl md:text-2xl font-semibold text-cyan-400 mb-2">
+                            <i class="fa-solid fa-plane-departure mr-2"></i>Aviator Analyzer Lite
+                        </h1>
+                        <p class="text-sm text-slate-400">Input past multipliers for advanced analysis.</p>
+                    </div>
+                    <div class="mb-5">
+                        <label for="aviatorHistoryInput" class="block text-sm font-medium text-slate-300 mb-2">Crash Multiplier History (Newest first, max 200 lines):</label>
+                        <textarea id="aviatorHistoryInput" rows="8" class="w-full p-2 border rounded-md focus:ring-1 focus:ring-cyan-500 text-sm" placeholder="Enter multipliers here, one per line (e.g., 2.15, 1.05x, 10)"></textarea>
+                        <p class="text-xs text-slate-400 mt-1">Enter one multiplier per line (minimum 1.0). Example: 1.52</p>
+                    </div>
+                    <div class="flex justify-center gap-3 mb-6 flex-wrap">
+                        <button id="aviatorAnalyzeBtn" class="flex items-center gap-2 text-white font-medium py-2 px-5 rounded-md transition duration-200 text-sm shadow hover:shadow-md">
+                            <i class="fa-solid fa-calculator fa-fw"></i>
+                            <span>Analyze & Simulate</span>
+                        </button>
+                        <button id="aviatorClearHistoryBtn" class="flex items-center gap-2 text-white font-medium py-2 px-4 rounded-md transition duration-200 text-sm shadow hover:shadow-md">
+                            <i class="fa-solid fa-trash-can fa-fw"></i>
+                            <span>Clear</span>
+                        </button>
+                        <button id="aviatorVisualizeBtn" class="flex items-center gap-2 text-white font-medium py-2 px-5 rounded-md transition duration-200 text-sm shadow hover:shadow-md">
+                            <i class="fa-solid fa-chart-line fa-fw"></i>
+                            <span>Visualize</span>
+                        </button>
+                    </div>
+                     <p id="aviatorErrorMsg" class="text-center mt-4 text-sm"></p>
+                    <div id="aviatorResultsArea" class="stats-result mt-5 border-t border-slate-700 pt-5 hidden fade-in">
+                        <h2 class="text-lg md:text-xl font-semibold text-slate-200 mb-4 text-center">Analysis & Simulation</h2>
+                        <h3 class="text-base font-semibold text-cyan-400 mb-2 text-center md:text-left">Statistics</h3>
+                        <div class="stats-grid grid gap-3 mb-4">
+                            <div class="p-3 rounded-md text-center">
+                                <p class="text-xs font-medium">Total Rounds</p><p id="aviatorTotalRounds" class="text-lg font-semibold stat-value">-</p>
+                            </div>
+                            <div class="p-3 rounded-md text-center">
+                                <p class="text-xs font-medium">Average</p><p id="aviatorAverageMultiplier" class="text-lg font-semibold stat-value">-</p>
+                            </div>
+                            <div class="p-3 rounded-md text-center">
+                                <p class="text-xs font-medium">Below 1.5x</p><p id="aviatorBelow1_5x" class="text-lg font-semibold stat-value">-</p>
+                            </div>
+                            <div class="p-3 rounded-md text-center">
+                                <p class="text-xs font-medium">Below 2.0x</p><p id="aviatorBelow2_0x" class="text-lg font-semibold stat-value">-</p>
+                            </div>
+                            <div class="p-3 rounded-md text-center">
+                                <p class="text-xs font-medium">Above 5.0x</p><p id="aviatorAbove5_0x" class="text-lg font-semibold stat-value">-</p>
+                            </div>
+                            <div class="p-3 rounded-md text-center">
+                                <p class="text-xs font-medium">Above 10.0x</p><p id="aviatorAbove10_0x" class="text-lg font-semibold stat-value">-</p>
+                            </div>
+                            <div class="p-3 rounded-md text-center">
+                                <p class="text-xs font-medium">Low Streak (<2x)</p><p id="aviatorLowStreak" class="text-lg font-semibold stat-value">-</p>
+                            </div>
+                            <div class="p-3 rounded-md text-center">
+                                <p class="text-xs font-medium">High Streak (>10x)</p><p id="aviatorHighStreak" class="text-lg font-semibold stat-value">-</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-2 text-center md:text-left">Note: Statistics are based on historical data and may not predict future outcomes.</p>
+                        <div class="simulation-results">
+                            <h3 class="text-base font-semibold text-pink-400 mb-2 text-center md:text-left">Strategy Simulation</h3>
+                            <p class="text-xs text-slate-400 mb-3 text-center md:text-left"><strong class="text-slate-200">"Bet every round and cash out at 1.5x."</strong> Rule Applied</p>
+                            <div class="flex flex-wrap justify-around items-center gap-3">
+                                <div class="sim-item-box p-3 rounded-md text-center flex-grow">
+                                    <p class="text-xs font-medium">Simulated Wins</p><p id="aviatorSimWins" class="text-lg font-semibold stat-value">-</p>
+                                </div>
+                                <div class="sim-item-box p-3 rounded-lg text-center flex-grow">
+                                    <p class="text-xs font-medium">Simulated Losses</p><p id="aviatorSimLosses" class="text-lg font-semibold stat-value">-</p>
+                                </div>
+                                <div class="sim-item-box p-3 rounded-lg text-center flex-grow">
+                                    <p class="text-xs font-medium">Simulated Win Rate</p><p id="aviatorSimWinRate" class="text-lg font-semibold stat-value">-</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-5">
+                            <h3 class="text-base font-semibold text-slate-300 mb-2 text-center md:text-left">Input History (Newest first)</h3>
+                            <ul id="aviatorHistoryList" class="list-none max-h-40 overflow-y-auto p-3 rounded text-sm border">
+                                <li>Input history above...</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mines-content" class="tab-content hidden">
+                <div class="mines-container">
+                    <div class="text-center mb-6">
+                        <h1 class="text-xl md:text-2xl font-semibold text-green-400 mb-2">
+                            <i class="fa-solid fa-bomb mr-2"></i>Mines Predictor
+                        </h1>
+                        <p class="text-sm text-slate-400">Predict safe and risky tiles based on historical patterns or randomness.</p>
+                    </div>
+                    <div class="mines-controls">
+                        <label for="minesCountInput">Number of Mines:</label>
+                        <input type="number" id="minesCountInput" min="1" max="24" value="3">
+                        <button id="minesPredictBtn" class="mines-predict-btn flex items-center gap-2 text-white font-medium text-sm shadow hover:shadow-md">
+                            <i class="fa-solid fa-search fa-fw"></i>
+                            <span>Predict</span>
+                        </button>
+                    </div>
+                     <p id="minesErrorMsg" class="mines-error"></p>
+                    <div id="minesGrid" class="mines-grid">
+                        </div>
+                    <div id="minesPredictionSummary" class="mines-prediction-summary hidden">
+                        <strong>Prediction:</strong><br>
+                        <span id="minesSafePredictionText"></span><br>
+                        <span id="minesMinePredictionText"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="about-content" class="tab-content hidden">
+                <h2 class="text-2xl font-semibold text-yellow-400 mb-4 text-center">About Predict VIP</h2>
+                <div class="max-w-3xl mx-auto text-center text-blue-200 space-y-4">
+                    <p>Predict VIP provides tools using algorithms like a Hybrid Model (Statistical Probability, Moving Average, Time Series) and Pattern Following for optimized analysis and predictions.</p>
+                    <p><strong class="text-white">Prediction Tab:</strong> Offers real-time Wingo predictions (1 Min game).</p>
+                    <p><strong class="text-white">Aviator Tab:</strong> Provides statistical analysis of past crash multipliers and includes a basic strategy simulation (cash out at 1.5x). Also offers visualization.</p>
+                    <p><strong class="text-white">Mines Tab:</strong> Attempts to predict safe and risky tiles for the Mines game based on historical patterns (if available) or provides random suggestions otherwise.</p>
+                    <p class="text-sm text-slate-400 mt-6">
+                        <strong class="text-red-400">Disclaimer:</strong> Predictions are based on algorithms and historical data analysis. They **do not guarantee success or winnings**. Games like Wingo, Aviator, and Mines involve chance. Use these tools responsibly as analytical aids only and manage your funds wisely. Do not rely solely on these predictions for financial decisions.
+                    </p>
+                </div>
+            </div>
+
+        </div> </main>
+
+    <div id="win-menu-container" class="popup-container hidden">
+        <div class="popup-content">
+            <button id="close-win-menu" class="close-popup" aria-label="Close Prediction Menu">×</button>
+            <h2 class="text-xl font-bold mb-4 text-yellow-400">AUTO PREDICTION (1 Min)</h2>
+            <div class="grid grid-cols-2 gap-4 mb-4 text-center">
+                <div>
+                    <p class="text-sm text-blue-200">Next Period</p>
+                    <p id="next-period-display" class="text-xl font-bold text-white">-</p>
+                </div>
+                <div>
+                    <p class="text-sm text-blue-200">Countdown</p>
+                    <p id="win-timer-value" class="text-xl font-bold text-yellow-400">--:--</p>
+                </div>
+            </div>
+            <div id="prediction-display" class="mb-4">
+                <p class="text-sm text-blue-200 mb-1">Prediction</p>
+                <div id="prediction-output" class="text-lg text-white">-</div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-sm mb-4">
+                <div class="bg-blue-900/50 p-2 rounded">Wins: <span id="stat-wins" class="font-bold text-green-400">0</span></div>
+                <div class="bg-blue-900/50 p-2 rounded">Losses: <span id="stat-losses" class="font-bold text-red-400">0</span></div>
+                <div class="bg-blue-900/50 p-2 rounded">Accuracy: <span id="stat-accuracy" class="font-bold text-white">0%</span></div>
+                <div class="bg-blue-900/50 p-2 rounded">Reverse: <span id="stat-reverse" class="font-bold text-slate-300">Inactive</span></div>
+            </div>
+            <div class="prediction-history">
+                <h3 class="text-lg font-bold mb-2 text-yellow-400">Period History (Last 10)</h3>
+                <table class="history-table" id="history-list">
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Predict (B/S)</th>
+                            <th>Predict (Color)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="4" class="text-center p-4 text-slate-400">Loading history...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="canvas-container" class="popup-container hidden">
+        <canvas id="prediction-chart" aria-label="Prediction Chart"></canvas>
+        <button id="close-canvas" aria-label="Close Chart">Close</button>
+   </div>
+
+    <script>
+        /**
+         * Predict VIP - Optimized Hybrid Model Script
+         * Includes Wingo Auto Predictor, Aviator Analyzer, Mines Predictor
+         * Version: 2.0 (Refined based on user feedback)
+         */
+        (function() {
+            // Run script after the DOM is fully loaded
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log("Initializing Predict VIP Script v2.0...");
+
+                // --- Particle.js Initialization ---
+                try {
+                    if (typeof particlesJS === 'function') {
+                        particlesJS('particles-js', { /* Full Particle.js config */
+                            "particles": { "number": { "value": 50, "density": { "enable": true, "value_area": 800 } }, "color": { "value": "#ffffff" }, "shape": { "type": "circle" }, "opacity": { "value": 0.2, "random": true, "anim": { "enable": true, "speed": 0.5, "opacity_min": 0.05, "sync": false } }, "size": { "value": 1.5, "random": true }, "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.3, "width": 1 }, "move": { "enable": true, "speed": 3, "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false } }, "interactivity": { "detect_on": "canvas", "events": { "onhover": { "enable": true, "mode": "repulse" }, "onclick": { "enable": false }, "resize": true }, "modes": { "repulse": { "distance": 80, "duration": 0.4 }, "grab": { "distance": 140, "line_linked": { "opacity": 1 } } } }, "retina_detect": true
+                        });
+                    } else { console.warn("particlesJS library not found."); }
+                } catch (e) {
+                    console.error("Error initializing Particle.js:", e);
+                }
+
+                // --- Constants ---
+                const WINGO_API_URL = "https://api.bdg88zf.com/api/webapi/GetNoaverageEmerdList"; // Wingo API Endpoint
+                const WINGO_GAME_TYPE_ID = 1; // Game ID for 1-minute Wingo
+                const WINGO_COUNTDOWN_START = 60; // Seconds per round
+                const WINGO_FETCH_INTERVAL_NEAR_END = 3; // Fetch every X seconds when countdown <= X
+                const WINGO_FETCH_INTERVAL_MID = 30; // Fetch also at X seconds remaining
+                const WINGO_HISTORY_LIMIT = 15; // Max Wingo history items to keep in memory
+                const WINGO_DISPLAY_HISTORY_LIMIT = 10; // Max Wingo history items to display
+                const WINGO_REVERSE_LOSS_THRESHOLD = 2; // Consecutive losses to trigger reverse logic
+                const MINES_HISTORY_KEY = 'minesPredictorHistory_v7'; // LocalStorage key for Mines
+                const MINES_HISTORY_LIMIT = 150; // Max Mines history entries
+                const MINES_GRID_SIZE = 25; // 5x5 grid
+                const MINES_MIN_HISTORY_FOR_PATTERN = 5; // Min history needed for pattern analysis
+                const MINES_DEFAULT_COUNT = 3; // Default mines count
+                const MINES_PREDICT_SAFE_COUNT = 7; // Number of safe tiles to suggest
+                const AVIATOR_HISTORY_KEY = 'aviatorHistory'; // LocalStorage key for Aviator
+                const AVIATOR_MAX_HISTORY_LINES = 200; // Max Aviator history lines to process/store
+                const AVIATOR_SIM_THRESHOLD = 1.5; // Cash-out threshold for simulation
+
+                // --- DOM Element References ---
+                const body = document.body;
+                const tabButtons = document.querySelectorAll('.tab-button');
+                const tabContents = document.querySelectorAll('.tab-content');
+                let aviatorInitialized = false; // Flag to prevent multiple initializations
+                let minesInitialized = false;   // Flag for Mines initialization
+
+                // Wingo Elements
+                const startPredictionButton = document.getElementById('start-prediction-button');
+                const winMenuContainer = document.getElementById('win-menu-container');
+                const closeWinMenuButton = document.getElementById('close-win-menu');
+                const nextPeriodDisplayElement = document.getElementById('next-period-display');
+                const timerElement = document.getElementById('win-timer-value');
+                const predictionOutputElement = document.getElementById('prediction-output');
+                const historyListBody = document.getElementById('history-list')?.querySelector('tbody');
+                const statWinsEl = document.getElementById('stat-wins');
+                const statLossesEl = document.getElementById('stat-losses');
+                const statAccuracyEl = document.getElementById('stat-accuracy');
+                const statReverseEl = document.getElementById('stat-reverse');
+                const apiStatusMessageEl = document.getElementById('api-status-message'); // For errors outside popup
+
+                // Aviator Elements
+                const aviatorHistoryInput = document.getElementById('aviatorHistoryInput');
+                const aviatorAnalyzeBtn = document.getElementById('aviatorAnalyzeBtn');
+                const aviatorClearHistoryBtn = document.getElementById('aviatorClearHistoryBtn');
+                const aviatorVisualizeBtn = document.getElementById('aviatorVisualizeBtn');
+                const aviatorResultsArea = document.getElementById('aviatorResultsArea');
+                const aviatorTotalRoundsEl = document.getElementById('aviatorTotalRounds');
+                const aviatorAverageMultiplierEl = document.getElementById('aviatorAverageMultiplier');
+                const aviatorBelow1_5xEl = document.getElementById('aviatorBelow1_5x');
+                const aviatorBelow2_0xEl = document.getElementById('aviatorBelow2_0x');
+                const aviatorAbove5_0xEl = document.getElementById('aviatorAbove5_0x');
+                const aviatorAbove10_0xEl = document.getElementById('aviatorAbove10_0x');
+                const aviatorLowStreakEl = document.getElementById('aviatorLowStreak');
+                const aviatorHighStreakEl = document.getElementById('aviatorHighStreak');
+                const aviatorSimWinsEl = document.getElementById('aviatorSimWins');
+                const aviatorSimLossesEl = document.getElementById('aviatorSimLosses');
+                const aviatorSimWinRateEl = document.getElementById('aviatorSimWinRate');
+                const aviatorHistoryList = document.getElementById('aviatorHistoryList');
+                const aviatorErrorMsg = document.getElementById('aviatorErrorMsg');
+
+                // Mines Elements
+                const minesGrid = document.getElementById('minesGrid');
+                const minesCountInput = document.getElementById('minesCountInput');
+                const minesPredictBtn = document.getElementById('minesPredictBtn');
+                const minesPredictionSummary = document.getElementById('minesPredictionSummary');
+                const minesSafePredictionText = document.getElementById('minesSafePredictionText');
+                const minesMinePredictionText = document.getElementById('minesMinePredictionText');
+                const minesErrorMsg = document.getElementById('minesErrorMsg');
+
+                // Chart Elements
+                const canvasContainer = document.getElementById('canvas-container');
+                const predictionChartCanvas = document.getElementById('prediction-chart');
+                const closeCanvasBtn = document.getElementById('close-canvas');
+
+                // --- State Variables ---
+                // Wingo State
+                let wingoPredictionHistory = []; // Renamed for clarity
+                let wingoTotalWins = 0;
+                let wingoTotalLosses = 0;
+                let wingoLastFetchedPeriod = null;
+                let wingoConsecutiveLosses = 0;
+                let wingoIsReversed = false;
+                let wingoCountdown = WINGO_COUNTDOWN_START;
+                let wingoTimerInterval = null;
+                let chartInstance = null;
+
+                // Mines State
+                let minesPredictorHistory = []; // Loaded below
+                let minesRevealedTiles = []; // Used only for visual reset in prediction cycle
+                let minesCount = MINES_DEFAULT_COUNT; // Default mines count
+
+                // --- Load Mines History ---
+                try {
+                    const savedMinesHistory = localStorage.getItem(MINES_HISTORY_KEY);
+                    if (savedMinesHistory) {
+                        minesPredictorHistory = JSON.parse(savedMinesHistory);
+                        console.log(`Loaded ${minesPredictorHistory.length} mines history entries.`);
+                    } else {
+                         console.log("No Mines history found in localStorage.");
+                    }
+                } catch (e) {
+                    console.error("Error loading Mines history from localStorage:", e);
+                    minesPredictorHistory = []; // Reset history on error
+                }
+
+                // --- Tab Switching Logic ---
+                function switchTab(targetTab) {
+                    if (!targetTab) return;
+
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.add('hidden'));
+
+                    const activeButton = document.querySelector(`.tab-button[data-tab="${targetTab}"]`);
+                    const activeContent = document.getElementById(`${targetTab}-content`);
+
+                    if (activeButton) activeButton.classList.add('active');
+                    if (activeContent) activeContent.classList.remove('hidden');
+                    else console.error(`Tab content not found for: ${targetTab}`);
+
+                    // Initialize components only when tab is first viewed
+                    if (targetTab === 'aviator' && !aviatorInitialized) {
+                        initAviatorAnalyzer();
+                        aviatorInitialized = true;
+                    }
+                    if (targetTab === 'mines' && !minesInitialized) {
+                        initMinesPredictor();
+                        minesInitialized = true;
+                    }
+
+                    // Stop Wingo predictor if navigating away from Prediction tab
+                    if (targetTab !== 'prediction' && wingoTimerInterval) {
+                        stopAutoPredictionLoop();
+                        // Ensure Wingo popup is closed if open
+                        if (winMenuContainer && !winMenuContainer.classList.contains('hidden')) {
+                            winMenuContainer.classList.add('hidden');
+                            body.classList.remove('overflow-hidden');
+                            if (startPredictionButton) startPredictionButton.classList.remove('hidden');
+                        }
+                    }
+                }
+
+                if (tabButtons.length > 0 && tabContents.length > 0) {
+                    tabButtons.forEach(button => {
+                        button.addEventListener('click', () => {
+                            const targetTab = button.getAttribute('data-tab');
+                            switchTab(targetTab);
+                        });
+                    });
+                     // Activate the initial tab (Homepage by default)
+                     const initialActiveTabButton = document.querySelector('.tab-button.active');
+                     if (initialActiveTabButton) {
+                         switchTab(initialActiveTabButton.getAttribute('data-tab'));
+                     } else {
+                          // Fallback if no tab has 'active' class initially
+                         switchTab('homepage');
+                     }
+                } else {
+                     console.error("Tab button or content elements not found! Navigation will not work.");
+                }
+
+
+                // --- Wingo Prediction Logic ---
+
+                // Hybrid Model Functions
+                function calculateMovingAverage(history, period = 5) {
+                    if (!Array.isArray(history) || history.length < period) return 0;
+                    const relevantHistory = history.slice(-period).map(item => parseInt(item.result)).filter(num => !isNaN(num));
+                    if (relevantHistory.length === 0) return 0;
+                    const sum = relevantHistory.reduce((a, b) => a + b, 0);
+                    return sum / relevantHistory.length;
+                }
+
+                function statisticalProbability(history) {
+                    const defaults = { big: 0.5, small: 0.5, red: 0.5, green: 0.5, violet: 0.05 };
+                    if (!Array.isArray(history) || !history.length) return defaults;
+
+                    const completed = history.filter(h => h.status === "WIN" || h.status === "LOSS");
+                    if(!completed.length) return defaults;
+
+                    const bigCount = completed.filter(h => getResultType(h.result) === "BIG").length;
+                    const smallCount = completed.filter(h => getResultType(h.result) === "SMALL").length;
+                    const bsTotal = bigCount + smallCount; // Ignore violet for B/S probability
+
+                    const redCount = completed.filter(h => getResultColor(h.result) === "RED").length;
+                    const greenCount = completed.filter(h => getResultColor(h.result) === "GREEN").length;
+                    const violetCount = completed.filter(h => getResultColor(h.result) === "VIOLET").length;
+                    const colorTotal = redCount + greenCount + violetCount;
+
+                    return {
+                        big: bsTotal > 0 ? bigCount / bsTotal : 0.5,
+                        small: bsTotal > 0 ? smallCount / bsTotal : 0.5,
+                        red: colorTotal > 0 ? redCount / colorTotal : 0.5,
+                        green: colorTotal > 0 ? greenCount / colorTotal : 0.5,
+                        violet: colorTotal > 0 ? violetCount / colorTotal : 0.05 // Base violet probability low
+                    };
+                }
+
+                 function timeSeriesTrend(history) {
+                    // Base trend on last 3 actual results
+                    if (!Array.isArray(history) || history.length < 3) return "BIG"; // Default if not enough data
+                    const recentResults = history.slice(-3).map(h => getResultType(h.result));
+                    if (recentResults.some(r => r === "")) return "BIG"; // If results missing, default
+                    const bigStreak = recentResults.filter(p => p === "BIG").length;
+                    // Simple reversal: If last 2+ were BIG, predict SMALL, otherwise predict BIG
+                    return bigStreak >= 2 ? "SMALL" : "BIG";
+                }
+
+                function getHybridPrediction(history) {
+                    const prob = statisticalProbability(history);
+                    const ma = calculateMovingAverage(history); // Moving Average based on number result
+                    const trend = timeSeriesTrend(history); // Trend based on Big/Small result
+
+                    // --- Weighted Prediction Logic (Example) ---
+                    // Adjust weights based on testing/preference
+                    let bigScore = 0;
+                    // Factor 1: Statistical Probability (Weight: 0.4)
+                    bigScore += prob.big * 0.4;
+                    // Factor 2: Moving Average (Weight: 0.3) - Is average >= 5?
+                    bigScore += (ma >= 5 ? 1 : 0) * 0.3;
+                    // Factor 3: Time Series Trend (Weight: 0.3) - Follow or reverse trend?
+                    bigScore += (trend === 'BIG' ? 1 : 0) * 0.3;
+
+                    // Base Prediction (B/S)
+                    const basePrediction = bigScore > 0.5 ? "BIG" : "SMALL";
+
+                    // Apply Reverse Logic based on consecutive losses
+                    const finalBsPrediction = wingoIsReversed ? (basePrediction === "BIG" ? "SMALL" : "BIG") : basePrediction;
+
+                    // Color Prediction (Higher probability wins, simple approach)
+                    // Consider Violet separately if needed
+                    let colorPrediction = "GREEN"; // Default
+                    if (prob.red > prob.green) {
+                        colorPrediction = "RED";
+                    }
+                    // Optional: Add Violet prediction logic if probability is high enough
+                    // if (prob.violet > 0.2) { /* Logic to predict Violet */ }
+
+                    return { prediction: finalBsPrediction, colorPrediction: colorPrediction };
+                }
+
+                // Helper Functions
+                function getResultType(numberStr) {
+                    const num = parseInt(numberStr, 10);
+                    return isNaN(num) ? "" : (num === 0 || num === 5) ? "VIOLET" : (num > 5 ? "BIG" : "SMALL"); // Handle 0 and 5 for B/S/V
+                }
+
+                function getResultColor(numberStr) {
+                    const num = parseInt(numberStr, 10);
+                    if (isNaN(num)) return "";
+                    if (num === 0) return "VIOLET_RED"; // Special case 0
+                    if (num === 5) return "VIOLET_GREEN"; // Special case 5
+                    return num % 2 === 0 ? "RED" : "GREEN";
+                }
+
+                // Update Wingo Stats Display
+                function updateWingoStats() {
+                    wingoTotalWins = wingoPredictionHistory.filter(i => i.status === "WIN").length;
+                    wingoTotalLosses = wingoPredictionHistory.filter(i => i.status === "LOSS").length;
+                    const totalPredictions = wingoTotalWins + wingoTotalLosses;
+                    const accuracy = totalPredictions > 0 ? (wingoTotalWins / totalPredictions) * 100 : 0;
+
+                    if (statWinsEl) statWinsEl.textContent = wingoTotalWins;
+                    if (statLossesEl) statLossesEl.textContent = wingoTotalLosses;
+                    if (statAccuracyEl) statAccuracyEl.textContent = accuracy.toFixed(1) + '%';
+                    if (statReverseEl) {
+                        statReverseEl.textContent = wingoIsReversed ? "Active" : "Inactive";
+                        statReverseEl.style.color = wingoIsReversed ? '#fde047' : '#cbd5e1'; // Yellow when active
+                    }
+                }
+
+                 // Update Wingo History Table Display
+                function updateWingoHistoryTable() {
+                    if (!historyListBody) {
+                        console.error("History table body not found!");
+                        return;
+                    }
+                    const limitedHistory = wingoPredictionHistory.slice(0, WINGO_DISPLAY_HISTORY_LIMIT);
+                    historyListBody.innerHTML = limitedHistory.length ? limitedHistory.map(item => {
+                        let bsStatus = item.status || 'Pending';
+                        let colorPredictionText = item.colorPrediction || '-';
+                        let bsPredictionText = item.prediction || '-'; // Big/Small prediction
+
+                        let actualResultType = item.result ? getResultType(item.result) : null;
+                        let actualResultColorSimple = item.result ? getResultColor(item.result).replace('VIOLET_', '') : null; // Simple Red/Green for basic comparison
+
+                        // Determine match status for Big/Small prediction (Consider Violet results as neutral/loss for B/S?)
+                        // This logic treats Violet as loss for B/S prediction. Adjust if needed.
+                        let bsMatch = item.result && bsStatus !== 'Pending' &&
+                                      item.prediction === actualResultType &&
+                                      actualResultType !== 'VIOLET';
+                        let bsMatchIcon = '';
+                        if (bsStatus !== 'Pending' && item.result) {
+                             bsMatchIcon = bsMatch ? ' <i class="fas fa-check text-green-400 ml-1"></i>' : ' <i class="fas fa-times text-red-400 ml-1"></i>';
+                        }
+
+
+                        // Determine match status for Color prediction (Simple Red/Green match)
+                        let colorMatch = item.result && bsStatus !== 'Pending' &&
+                                         item.colorPrediction === actualResultColorSimple;
+                         let colorMatchIcon = '';
+                         if (bsStatus !== 'Pending' && item.result) {
+                            colorMatchIcon = colorMatch ? ' <i class="fas fa-check text-green-400 ml-1"></i>' : ' <i class="fas fa-times text-red-400 ml-1"></i>';
+                         }
+
+                        let rowBgClass = `history-item ${bsStatus.toLowerCase()}`;
+                        let dotColorStyle = '';
+                        switch (item.colorPrediction?.toLowerCase()) {
+                            case 'red': dotColorStyle = 'background: #ef4444;'; break;
+                            case 'green': dotColorStyle = 'background: #22c55e;'; break;
+                            case 'violet': dotColorStyle = 'background: #a855f7;'; break;
+                            default: dotColorStyle = 'background: grey;';
+                        }
+
+                        return `
+                            <tr class="${rowBgClass}">
+                                <td>${item.period || '-'}</td>
+                                <td>${bsPredictionText}${bsMatchIcon}</td>
+                                <td><span class="color-dot" style="${dotColorStyle}"></span>${colorPredictionText}${colorMatchIcon}</td>
+                                <td><div class="status-box">${bsStatus}</div></td>
+                            </tr>`;
+                    }).join('') : `<tr><td colspan="4" class="text-center p-4 text-slate-400">No history yet...</td></tr>`;
+                }
+
+
+                // Show API Error Message
+                function showApiError(message) {
+                    const userMessage = message || "Failed to fetch game data. Check connection or API status.";
+                    console.error("API Error:", userMessage); // Log detailed error
+
+                    // Display in popup if open
+                    if (predictionOutputElement && winMenuContainer && !winMenuContainer.classList.contains('hidden')) {
+                         predictionOutputElement.innerHTML = `<span class="text-red-400 text-sm">${userMessage}</span>`;
+                    }
+                    // Display outside popup if prediction tab is active but popup closed
+                    else if (apiStatusMessageEl && document.getElementById('prediction-content')?.classList.contains('hidden') === false) {
+                        apiStatusMessageEl.textContent = userMessage;
+                        apiStatusMessageEl.classList.remove('hidden');
+                    }
+                }
+
+                // Hide API Error Message
+                function hideApiError() {
+                    if (apiStatusMessageEl) {
+                       apiStatusMessageEl.textContent = '';
+                       apiStatusMessageEl.classList.add('hidden');
+                    }
+                     // Also clear error from popup display if it exists
+                    if (predictionOutputElement && predictionOutputElement.querySelector('.text-red-400')) {
+                        predictionOutputElement.innerHTML = '-'; // Reset prediction display
+                    }
+                }
+
+                // Fetch Latest Wingo Result
+                async function fetchWingoGameResult() {
+                    const apiUrl = WINGO_API_URL;
+                    // Consider if 'random' and 'signature' need to be dynamic
+                    const payload = {
+                        pageSize: 10, // Fetch a few recent results
+                        pageNo: 1,
+                        typeId: WINGO_GAME_TYPE_ID,
+                        language: 0, // Assuming English or default
+                        random: "4a0522c6ecd8410496260e686be2a57c", // Potentially static?
+                        signature: "334B5E70A0C9B8918B0B15E517E2069C", // Potentially static?
+                        timestamp: Math.floor(Date.now() / 1000)
+                    };
+                    try {
+                        hideApiError(); // Clear previous errors
+                        const response = await fetch(apiUrl, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                             throw new Error(`HTTP error ${response.status} - ${response.statusText}`);
+                        }
+
+                        const data = await response.json();
+
+                        // Add more robust checking for the expected data structure
+                        if (data?.code !== 0 || !data?.data?.list || data.data.list.length === 0) {
+                            console.warn("API response format unexpected or empty:", data);
+                            throw new Error(`Unexpected API response format (Code: ${data?.code})`);
+                        }
+
+                        const latestResult = data.data.list[0];
+                        if (latestResult?.issueNumber && latestResult.number !== undefined) {
+                            return {
+                                period: String(latestResult.issueNumber),
+                                result: String(latestResult.number) // Result is the number (0-9)
+                            };
+                        } else {
+                             console.warn("Latest result data missing fields:", latestResult);
+                             throw new Error("API result data missing required fields.");
+                        }
+
+                    } catch (e) {
+                        showApiError(e.message); // Show specific fetch/parse error message
+                        return null; // Indicate failure
+                    }
+                }
+
+
+                // Check Win/Loss Status for a Completed Period
+                function checkWingoWinLoss(apiResult) {
+                    if (!apiResult?.result || !apiResult.period) return false; // Need period and result
+
+                    let statusChanged = false;
+                    const historyEntry = wingoPredictionHistory.find(i => i.period === apiResult.period && i.status === "Pending");
+
+                    if (historyEntry) {
+                        historyEntry.result = apiResult.result;
+                        const actualResultType = getResultType(apiResult.result); // Gets BIG, SMALL, or VIOLET
+
+                        // --- Determine Win/Loss Status ---
+                        // Basic B/S Win: Prediction matches result AND result is not Violet
+                        if (historyEntry.prediction === actualResultType && actualResultType !== 'VIOLET') {
+                            historyEntry.status = "WIN";
+                        } else {
+                            // Could add logic here for color wins if desired, but keeping simple B/S win/loss
+                            historyEntry.status = "LOSS";
+                        }
+                        // --- End Win/Loss Status ---
+
+                        statusChanged = true; // Status changed from Pending
+
+                        // Update reverse logic state based on Loss/Win
+                        if (historyEntry.status === "LOSS") {
+                            wingoConsecutiveLosses++;
+                            if (wingoConsecutiveLosses >= WINGO_REVERSE_LOSS_THRESHOLD && !wingoIsReversed) {
+                                wingoIsReversed = true;
+                                console.log("Wingo Reverse Logic Activated!");
+                            }
+                        } else { // On Win
+                            if (wingoIsReversed) {
+                                wingoIsReversed = false; // Deactivate reverse on a win
+                                console.log("Wingo Reverse Logic Deactivated.");
+                            }
+                            wingoConsecutiveLosses = 0; // Reset loss counter
+                        }
+                    } else {
+                        // console.log(`No pending prediction found for period ${apiResult.period}`);
+                    }
+
+                    // Update UI only if a status actually changed
+                    if (statusChanged) {
+                        updateWingoStats();
+                        updateWingoHistoryTable();
+                    }
+                    return statusChanged;
+                }
+
+                // Fetch Data and Update Wingo UI
+                async function fetchAndProcessWingoData() {
+                    const apiResult = await fetchWingoGameResult();
+                    if (!apiResult) {
+                        // Error handled by fetchWingoGameResult, maybe stop timer or show persistent error?
+                         if (timerElement) timerElement.textContent = 'Error';
+                        return false; // Indicate failure
+                    }
+
+                    // Check if the fetched result completes a pending prediction
+                    checkWingoWinLoss(apiResult);
+
+                    // If this period is newer than the last one we processed, update next prediction
+                    if (apiResult.period !== wingoLastFetchedPeriod) {
+                        wingoLastFetchedPeriod = apiResult.period;
+                        wingoCountdown = WINGO_COUNTDOWN_START; // Reset timer for the new period
+
+                        // Calculate next period ID
+                        const nextPeriod = (BigInt(apiResult.period) + 1n).toString();
+
+                        // Generate new prediction based on the potentially updated history
+                        const { prediction, colorPrediction } = getHybridPrediction(wingoPredictionHistory);
+
+                        // Update UI for next period
+                        if (nextPeriodDisplayElement) nextPeriodDisplayElement.textContent = nextPeriod;
+                        if (predictionOutputElement) {
+                            predictionOutputElement.innerHTML = `<span class="prediction-text ${prediction.toLowerCase()}">${prediction}</span> / <span class="prediction-text ${colorPrediction.toLowerCase()}">${colorPrediction}</span>`;
+                        }
+
+                        // Add new pending entry to history if it doesn't exist
+                        if (!wingoPredictionHistory.some(i => i.period === nextPeriod)) {
+                            wingoPredictionHistory.unshift({
+                                period: nextPeriod,
+                                prediction: prediction,
+                                colorPrediction: colorPrediction,
+                                result: null,
+                                status: "Pending"
+                            });
+                            // Limit history array size
+                            if (wingoPredictionHistory.length > WINGO_HISTORY_LIMIT) {
+                                wingoPredictionHistory = wingoPredictionHistory.slice(0, WINGO_HISTORY_LIMIT);
+                            }
+                             // Update history display immediately with the new pending row
+                             updateWingoHistoryTable();
+                        }
+                        // Update stats display (accuracy might change slightly if history length changed)
+                        updateWingoStats();
+
+                    } else {
+                         // Period is the same, just update countdown visually if needed (handled by tick)
+                    }
+
+                    return true; // Indicate successful processing
+                }
+
+                // Wingo Timer Tick Function
+                function wingoTick() {
+                    if (wingoCountdown <= 0) {
+                        wingoCountdown = 0; // Prevent negative countdown
+                        // Attempt to fetch immediately when timer hits 0
+                        fetchAndProcessWingoData();
+                    }
+
+                    // Update timer display
+                    if (timerElement) {
+                        const minutes = Math.floor(wingoCountdown / 60).toString().padStart(2, '0');
+                        const seconds = (wingoCountdown % 60).toString().padStart(2, '0');
+                        timerElement.textContent = `${minutes}:${seconds}`;
+                    }
+
+                    // Fetch data periodically near the end or mid-cycle
+                    if (wingoTimerInterval && (wingoCountdown <= WINGO_FETCH_INTERVAL_NEAR_END || wingoCountdown === WINGO_FETCH_INTERVAL_MID)) {
+                        fetchAndProcessWingoData(); // Fetch data without awaiting result here
+                    }
+
+                    // Decrement countdown *after* potential fetch at 0
+                    if (wingoCountdown > 0) {
+                        wingoCountdown--;
+                    } else {
+                         // If countdown is 0, it should be reset by fetchAndProcessWingoData when a new period is found
+                         // Add a small delay before next tick if stuck at 0?
+                    }
+                }
+
+
+                // Start Wingo Auto Prediction Loop
+                function startAutoPredictionLoop() {
+                    stopAutoPredictionLoop(); // Ensure previous interval is cleared
+                    console.log("Starting Wingo 1min prediction loop...");
+
+                    // Reset state variables
+                    wingoPredictionHistory = []; // Clear history array
+                    wingoTotalWins = 0;
+                    wingoTotalLosses = 0;
+                    wingoLastFetchedPeriod = null;
+                    wingoConsecutiveLosses = 0;
+                    wingoIsReversed = false;
+                    wingoCountdown = WINGO_COUNTDOWN_START;
+
+                    // Reset UI display
+                    updateWingoStats(); // Reset stats display (0 wins/losses)
+                    updateWingoHistoryTable(); // Clear history table display
+
+                    if (predictionOutputElement) predictionOutputElement.innerHTML = '<span class="text-sm text-slate-400">Fetching initial data...</span>';
+                    if (nextPeriodDisplayElement) nextPeriodDisplayElement.textContent = '-';
+                    if (timerElement) timerElement.textContent = '01:00'; // Initial display
+
+                    // Initial fetch to get current state and first prediction
+                    fetchAndProcessWingoData().then(success => {
+                         if (success && !wingoTimerInterval) {
+                             // Start the 1-second interval timer only after successful initial fetch
+                             wingoTimerInterval = setInterval(wingoTick, 1000);
+                             console.log("Wingo timer started.");
+                         } else if (!success) {
+                              console.error("Failed initial Wingo data fetch. Timer not started.");
+                              if (timerElement) timerElement.textContent = 'Error';
+                         }
+                    });
+                }
+
+
+                // Stop Wingo Auto Prediction Loop
+                function stopAutoPredictionLoop() {
+                    if (wingoTimerInterval) {
+                        clearInterval(wingoTimerInterval);
+                        wingoTimerInterval = null;
+                        console.log("Stopped Wingo prediction loop.");
+                        if (timerElement) timerElement.textContent = '--:--'; // Indicate stopped state
+                    }
+                }
+
+                // Wingo Event Listeners
+                if (startPredictionButton) {
+                    startPredictionButton.addEventListener('click', () => {
+                        if (winMenuContainer) winMenuContainer.classList.remove('hidden');
+                        startPredictionButton.classList.add('hidden'); // Hide start button
+                        body.classList.add('overflow-hidden'); // Prevent body scroll
+                        hideApiError(); // Clear any previous errors
+                        startAutoPredictionLoop();
+                    });
+                } else { console.error("Start Prediction Button not found!"); }
+
+                if (closeWinMenuButton) {
+                     closeWinMenuButton.addEventListener('click', () => {
+                        stopAutoPredictionLoop();
+                        if (winMenuContainer) winMenuContainer.classList.add('hidden');
+                        if (startPredictionButton) startPredictionButton.classList.remove('hidden'); // Show start button again
+                        body.classList.remove('overflow-hidden'); // Allow body scroll
+                    });
+                } else { console.error("Close WinMenu Button not found!"); }
+
+
+                // --- Mines Predictor Logic ---
+
+                function initMinesPredictor() {
+                    // Ensure required elements exist before proceeding
+                    if (!minesGrid || !minesPredictBtn || !minesCountInput || !minesErrorMsg || !minesPredictionSummary) {
+                        console.error("Mines Predictor critical DOM elements missing. Initialization failed.");
+                        if (minesErrorMsg) minesErrorMsg.textContent = "Initialization error. Please refresh the page.";
+                        minesInitialized = false; // Mark as not initialized
+                        return; // Stop initialization
+                    }
+                    createMinesGrid(); // Create the visual grid
+                    // Add event listener to the predict button
+                    minesPredictBtn.addEventListener('click', runMinesPrediction);
+                    console.log("Mines Predictor initialized successfully.");
+                    minesInitialized = true; // Mark as initialized
+
+                    // Optionally, run an initial prediction display if history exists
+                     if (minesPredictorHistory.length > 0) {
+                        runMinesPrediction(); // Show prediction on load if history exists
+                    } else {
+                        resetMinesGridVisuals(); // Ensure grid is clear on load if no history
+                        if(minesPredictionSummary) minesPredictionSummary.classList.add('hidden');
+                    }
+                }
+
+                function createMinesGrid() {
+                    if (!minesGrid) return;
+                    minesGrid.innerHTML = ''; // Clear previous grid if any
+                    for (let i = 0; i < MINES_GRID_SIZE; i++) {
+                        const tile = document.createElement('div');
+                        tile.className = 'mines-tile';
+                        tile.dataset.index = i;
+                        // Add placeholder or number if needed: tile.textContent = i + 1;
+                        minesGrid.appendChild(tile);
+                    }
+                }
+
+                // Function to save results (call when a tile is revealed in an actual game simulation)
+                function updateMinesPredictorHistory(tileIndex, result) {
+                    if (minesPredictorHistory.length >= MINES_HISTORY_LIMIT) {
+                       minesPredictorHistory.shift(); // Keep history size bounded
+                    }
+                    minesPredictorHistory.push({ tile: tileIndex, result: result, timestamp: Date.now() });
+                    try {
+                        localStorage.setItem(MINES_HISTORY_KEY, JSON.stringify(minesPredictorHistory));
+                    } catch (e) {
+                        console.error("Error saving Mines history to localStorage:", e);
+                        if (minesErrorMsg) minesErrorMsg.textContent = "Warning: Could not save game history.";
+                    }
+                }
+
+                // Analyzes history patterns
+                function analyzeMinesPatterns() {
+                    let mineFrequency = new Array(MINES_GRID_SIZE).fill(0);
+                    let starFrequency = new Array(MINES_GRID_SIZE).fill(0);
+                    const recentHistory = minesPredictorHistory.slice(-50); // Analyze last 50
+
+                    recentHistory.forEach(h => {
+                        // Ensure tile index is valid before accessing arrays
+                        if (h.tile !== undefined && h.tile >= 0 && h.tile < MINES_GRID_SIZE) {
+                           if (h.result === 'mine') {
+                               mineFrequency[h.tile]++;
+                               getMinesNeighbors(h.tile).forEach(n => mineFrequency[n] += 0.2); // Neighboring mines boost
+                           } else { // Assuming 'star' or safe
+                               starFrequency[h.tile]++;
+                               getMinesNeighbors(h.tile).forEach(n => starFrequency[n] += 0.1); // Neighboring safe boost
+                           }
+                        }
+                    });
+
+                    let likelihood = new Array(MINES_GRID_SIZE).fill(0);
+                    for (let i = 0; i < MINES_GRID_SIZE; i++) {
+                        // Higher score = more likely to be a mine
+                        likelihood[i] = mineFrequency[i] - (starFrequency[i] * 0.5); // Penalize safe frequency
+                    }
+                    return likelihood;
+                }
+
+                // Helper to get neighbors
+                function getMinesNeighbors(tileIndex) {
+                    let neighbors = [];
+                    const gridSize = 5; // Grid dimension
+                    const r = Math.floor(tileIndex / gridSize), c = tileIndex % gridSize;
+                    for (let dr = -1; dr <= 1; dr++) {
+                        for (let dc = -1; dc <= 1; dc++) {
+                            if (dr === 0 && dc === 0) continue; // Skip self
+                            let nr = r + dr, nc = c + dc;
+                            // Check bounds
+                            if (nr >= 0 && nr < gridSize && nc >= 0 && nc < gridSize) {
+                                neighbors.push(nr * gridSize + nc);
+                            }
+                        }
+                    }
+                    return neighbors;
+                }
+
+                // Selects safest/riskiest based on likelihood scores
+                function predictMinesSafestAndRiskiest(likelihood) {
+                    const tilesWithLikelihood = likelihood
+                        .map((score, index) => ({ index, score }))
+                        .filter(t => !minesRevealedTiles.includes(t.index)); // Exclude already revealed visually
+
+                    // Sort by score (lowest score = safest)
+                    tilesWithLikelihood.sort((a, b) => a.score - b.score);
+
+                    // Select N safest (use constant)
+                    const predictedSafe = tilesWithLikelihood.slice(0, MINES_PREDICT_SAFE_COUNT).map(t => t.index + 1);
+
+                    // Select M riskiest (use constant for min risky, ensure it uses minesCount)
+                    const numRisky = Math.max(3, minesCount); // Predict at least 3 or the number of mines
+                    const predictedRisky = tilesWithLikelihood.slice(-numRisky).map(t => t.index + 1);
+
+                    return { predictedSafe, predictedRisky };
+                }
+
+                // Main Mines Prediction Function (Called on Button Click)
+                function runMinesPrediction() {
+                    console.log("runMinesPrediction called");
+
+                    // --- Validate DOM Elements ---
+                    if (!minesErrorMsg || !minesCountInput || !minesGrid || !minesSafePredictionText || !minesMinePredictionText || !minesPredictionSummary) {
+                        console.error("Mines Predictor DOM elements missing inside runMinesPrediction.");
+                        alert("An internal error occurred with the Mines Predictor. Please refresh.");
+                        return;
+                    }
+
+                    // --- Clear previous state and validate input ---
+                    minesErrorMsg.textContent = '';
+                    resetMinesGridVisuals();
+                    minesRevealedTiles = []; // Reset revealed tiles for this prediction display
+
+                    try {
+                         minesCount = parseInt(minesCountInput.value);
+                         if (isNaN(minesCount) || minesCount < 1 || minesCount > MINES_GRID_SIZE - 1) { // Max mines is GridSize - 1
+                            minesErrorMsg.textContent = `Please enter a valid number of mines (1-${MINES_GRID_SIZE - 1}).`;
+                            return; // Stop if input is invalid
+                         }
+                    } catch(e) {
+                         minesErrorMsg.textContent = "Invalid number format for mines count.";
+                         return;
+                    }
+                    console.log(`Predicting for ${minesCount} mines.`);
+
+                    // --- Generate Prediction (Pattern or Random) ---
+                    let predictedSafe = [];
+                    let predictedRisky = [];
+                    let predictionType = ""; // Info for the user
+
+                    try { // Wrap prediction logic in try/catch
+                        if (minesPredictorHistory.length >= MINES_MIN_HISTORY_FOR_PATTERN) {
+                            console.log("Using pattern analysis.");
+                            predictionType = "Pattern Based";
+                            const likelihood = analyzeMinesPatterns();
+                            const predictions = predictMinesSafestAndRiskiest(likelihood);
+                            predictedSafe = predictions.predictedSafe;
+                            predictedRisky = predictions.predictedRisky;
+                        } else {
+                            console.log("Using random prediction.");
+                            predictionType = `Random (Need ${MINES_MIN_HISTORY_FOR_PATTERN - minesPredictorHistory.length} more history entries for patterns)`;
+                            const allIndices = Array.from({ length: MINES_GRID_SIZE }, (_, i) => i);
+                            const shuffledIndices = allIndices.sort(() => 0.5 - Math.random()); // Simple shuffle
+                            predictedSafe = shuffledIndices.slice(0, MINES_PREDICT_SAFE_COUNT).map(i => i + 1);
+                            // Ensure risky prediction doesn't overlap with safe and gets enough tiles
+                            const remainingIndices = shuffledIndices.slice(MINES_PREDICT_SAFE_COUNT);
+                            predictedRisky = remainingIndices.slice(0, Math.max(3, minesCount)).map(i => i + 1);
+                        }
+                    } catch (e) {
+                        console.error("Error during Mines prediction generation:", e);
+                        minesErrorMsg.textContent = "An error occurred during prediction. Please try again.";
+                        return; // Stop if prediction logic fails
+                    }
+
+
+                    console.log("Predicted Safe:", predictedSafe);
+                    console.log("Predicted Risky:", predictedRisky);
+
+                    // --- Update Grid Visuals ---
+                    if (!minesGrid || minesGrid.children.length !== MINES_GRID_SIZE) {
+                        console.error("Mines grid not found or incorrect size when updating visuals.");
+                        minesErrorMsg.textContent = "Error updating grid display.";
+                        return;
+                    }
+
+                    predictedSafe.forEach(index1Based => {
+                        const index0Based = index1Based - 1;
+                        if (index0Based >= 0 && index0Based < MINES_GRID_SIZE && minesGrid.children[index0Based]) {
+                            minesGrid.children[index0Based].classList.add('predicted-safe');
+                        } else {
+                             console.warn(`Invalid safe index generated or tile missing: ${index1Based}`);
+                        }
+                    });
+
+                    predictedRisky.forEach(index1Based => {
+                        const index0Based = index1Based - 1;
+                        if (index0Based >= 0 && index0Based < MINES_GRID_SIZE && minesGrid.children[index0Based]) {
+                            // Avoid marking a predicted safe tile also as a predicted mine
+                            if (!minesGrid.children[index0Based].classList.contains('predicted-safe')) {
+                                minesGrid.children[index0Based].classList.add('predicted-mine');
+                            }
+                        } else {
+                             console.warn(`Invalid risky index generated or tile missing: ${index1Based}`);
+                        }
+                    });
+
+                    // --- Update Summary Text ---
+                    minesSafePredictionText.textContent = `Suggested Safe Tiles: ${predictedSafe.join(', ')}`;
+                    minesMinePredictionText.textContent = `Potential Mine Tiles: ${predictedRisky.join(', ')} (${predictionType})`;
+                    minesPredictionSummary.classList.remove('hidden');
+
+                    // History update is commented out - should be driven by actual game interaction if implemented
+                    // updateMinesPredictorHistory(...);
+                }
+
+                // Reset Mines Grid Visuals
+                function resetMinesGridVisuals() {
+                    if (!minesGrid) return;
+                     Array.from(minesGrid.children).forEach(tile => {
+                        if(tile) tile.className = 'mines-tile'; // Reset classes
+                    });
+                    // Clear summary text
+                    if (minesSafePredictionText) minesSafePredictionText.textContent = '';
+                    if (minesMinePredictionText) minesMinePredictionText.textContent = '';
+                    if (minesPredictionSummary) minesPredictionSummary.classList.add('hidden');
+                    // Clear error message too
+                    if (minesErrorMsg) minesErrorMsg.textContent = '';
+                }
+
+
+                // --- Aviator Analyzer Logic ---
+
+                function initAviatorAnalyzer() {
+                     // Check if all required elements exist
+                     const requiredElements = [
+                        aviatorHistoryInput, aviatorAnalyzeBtn, aviatorClearHistoryBtn, aviatorVisualizeBtn,
+                        aviatorResultsArea, aviatorTotalRoundsEl, aviatorAverageMultiplierEl,
+                        aviatorBelow1_5xEl, aviatorBelow2_0xEl, aviatorAbove5_0xEl, aviatorAbove10_0xEl,
+                        aviatorLowStreakEl, aviatorHighStreakEl, aviatorSimWinsEl, aviatorSimLossesEl,
+                        aviatorSimWinRateEl, aviatorHistoryList, aviatorErrorMsg
+                    ];
+                    if (requiredElements.some(el => !el)) {
+                        console.error("One or more Aviator Analyzer DOM elements are missing. Initialization failed.");
+                        if(aviatorErrorMsg) aviatorErrorMsg.textContent = "Initialization error. Please refresh.";
+                        aviatorInitialized = false; // Mark as not initialized
+                        return; // Stop initialization
+                    }
+
+                    // Add event listeners
+                    aviatorAnalyzeBtn.addEventListener("click", () => analyzeAviatorData(true));
+                    aviatorClearHistoryBtn.addEventListener("click", clearAviatorHistory);
+                    aviatorVisualizeBtn.addEventListener('click', visualizeAviatorData);
+
+                    console.log("Aviator Analyzer Initialized.");
+                    aviatorInitialized = true; // Mark as initialized
+                    loadAviatorHistory(); // Load history on initialization
+                }
+
+
+                function loadAviatorHistory() {
+                    let saved = null;
+                    try {
+                        saved = localStorage.getItem(AVIATOR_HISTORY_KEY);
+                    } catch (e) {
+                        console.error("Error loading Aviator history:", e);
+                        if(aviatorErrorMsg) aviatorErrorMsg.textContent = "Could not load history.";
+                    }
+
+                    if (saved) {
+                        if(aviatorHistoryInput) aviatorHistoryInput.value = saved;
+                        // Analyze only if there's content after loading
+                        if (aviatorHistoryInput && aviatorHistoryInput.value.trim()) {
+                            analyzeAviatorData(false); // Don't re-save on load
+                        } else {
+                            // Clear display if loaded history was empty/whitespace
+                            if(aviatorHistoryList) aviatorHistoryList.innerHTML = '<li>Input history above...</li>';
+                            if(aviatorResultsArea) aviatorResultsArea.classList.add('hidden');
+                        }
+                    } else {
+                        // No saved history found
+                         if(aviatorHistoryInput) aviatorHistoryInput.value = '';
+                         if(aviatorHistoryList) aviatorHistoryList.innerHTML = '<li>Input history above...</li>';
+                         if(aviatorResultsArea) aviatorResultsArea.classList.add('hidden');
+                    }
+                }
+
+                function saveAviatorHistory(data) {
+                    try {
+                       localStorage.setItem(AVIATOR_HISTORY_KEY, data);
+                    } catch (e) {
+                       console.error("Error saving Aviator history:", e);
+                       if (aviatorErrorMsg) aviatorErrorMsg.textContent = "Error saving history.";
+                    }
+                }
+
+                 function clearAviatorHistory() {
+                     if (confirm("Are you sure you want to clear the Aviator history? This cannot be undone.")) {
+                        if(aviatorHistoryInput) aviatorHistoryInput.value = ""; // Clear textarea
+                        try {
+                            localStorage.removeItem(AVIATOR_HISTORY_KEY); // Clear storage
+                        } catch (e) {
+                            console.error("Error clearing Aviator history from localStorage:", e);
+                            if(aviatorErrorMsg) aviatorErrorMsg.textContent = "Could not clear stored history.";
+                        }
+                        if(aviatorResultsArea) aviatorResultsArea.classList.add("hidden"); // Hide results
+                        if(aviatorErrorMsg) aviatorErrorMsg.textContent = "History cleared."; // User feedback
+                        if(aviatorHistoryList) aviatorHistoryList.innerHTML = "<li>History cleared.</li>"; // Update list display
+
+                        // Clear chart if open
+                        if (chartInstance && canvasContainer && canvasContainer.classList.contains('active')) {
+                             if (closeCanvasBtn) closeCanvasBtn.click();
+                        }
+                    }
+                 }
+
+                function analyzeAviatorData(save = true) {
+                    // Re-check elements needed for analysis
+                    if (!aviatorErrorMsg || !aviatorResultsArea || !aviatorHistoryList || !aviatorHistoryInput) {
+                         console.error("Aviator DOM elements missing during analysis.");
+                         return;
+                    }
+
+                    aviatorErrorMsg.textContent = ""; // Clear previous errors
+                    aviatorResultsArea.classList.add("hidden"); // Hide results initially
+                    aviatorResultsArea.classList.remove("fade-in");
+                    aviatorHistoryList.innerHTML = "<li>Processing...</li>";
+
+                    let input = aviatorHistoryInput.value.trim();
+                    if (!input) {
+                        aviatorErrorMsg.textContent = "Please input history data.";
+                        aviatorHistoryList.innerHTML = "<li>Please input history data.</li>";
+                        return;
+                    }
+
+                    // Process input lines
+                    let lines = input.split("\n").map(line => line.trim()).filter(line => line !== "");
+                    let limitedLines = lines;
+                    let truncated = false;
+                    if (lines.length > AVIATOR_MAX_HISTORY_LINES) {
+                        limitedLines = lines.slice(0, AVIATOR_MAX_HISTORY_LINES);
+                        truncated = true;
+                        input = limitedLines.join("\n"); // Update input string if truncated
+                        console.warn(`Aviator history truncated to ${AVIATOR_MAX_HISTORY_LINES} lines.`);
+                    }
+
+                    // Parse multipliers, more robustly removing 'x' and ensuring >= 1.0
+                    const multipliers = limitedLines
+                        .map(line => parseFloat(line.replace(/[xX\s]/g, ""))) // Remove 'x', 'X', whitespace
+                        .filter(num => !isNaN(num) && num >= 1.0); // Must be a number >= 1.0
+
+                    if (multipliers.length === 0) {
+                        aviatorHistoryList.innerHTML = "<li>No valid multipliers (>= 1.0) found.</li>";
+                        aviatorErrorMsg.textContent = "No valid multipliers found. Enter values like 1.5, 2.3x, 10 etc.";
+                        // Optionally clear the input if it was truncated and contained no valid data
+                        // if (truncated) aviatorHistoryInput.value = "";
+                        return;
+                    }
+
+                    // Update input field only if it was truncated
+                    if (truncated) {
+                         aviatorHistoryInput.value = input;
+                         aviatorErrorMsg.textContent = `Note: History limited to the latest ${AVIATOR_MAX_HISTORY_LINES} valid entries.`;
+                    }
+
+                    // --- Perform Calculations ---
+                    const totalRounds = multipliers.length;
+                    let sum = 0, below1_5 = 0, below2_0 = 0, above5_0 = 0, above10_0 = 0, simWins = 0, simLosses = 0;
+
+                    multipliers.forEach(m => {
+                        sum += m;
+                        if (m < 1.5) below1_5++;
+                        if (m < 2.0) below2_0++;
+                        if (m >= 5.0) above5_0++;
+                        if (m >= 10.0) above10_0++;
+                        // Simulation based on constant threshold
+                        if (m >= AVIATOR_SIM_THRESHOLD) simWins++;
+                        else simLosses++;
+                    });
+
+                    const average = totalRounds > 0 ? (sum / totalRounds).toFixed(2) : '0.00';
+                    const below1_5Percent = totalRounds > 0 ? ((below1_5 / totalRounds) * 100).toFixed(1) : '0.0';
+                    const below2_0Percent = totalRounds > 0 ? ((below2_0 / totalRounds) * 100).toFixed(1) : '0.0';
+                    const above5_0Percent = totalRounds > 0 ? ((above5_0 / totalRounds) * 100).toFixed(1) : '0.0';
+                    const above10_0Percent = totalRounds > 0 ? ((above10_0 / totalRounds) * 100).toFixed(1) : '0.0';
+                    const winRate = (simWins + simLosses) > 0 ? ((simWins / (simWins + simLosses)) * 100).toFixed(1) : '0.0';
+
+                    // Calculate current streaks (from the newest entry)
+                    let currentLowStreak = 0;
+                    for (let i = 0; i < totalRounds; i++) { if (multipliers[i] < 2.0) currentLowStreak++; else break; }
+                    let currentHighStreak = 0;
+                    for (let i = 0; i < totalRounds; i++) { if (multipliers[i] >= 10.0) currentHighStreak++; else break; }
+
+                    // --- Update DOM Elements Safely ---
+                    const updateElement = (el, value) => { if (el) el.textContent = value; };
+
+                    updateElement(aviatorTotalRoundsEl, totalRounds);
+                    updateElement(aviatorAverageMultiplierEl, `${average}x`);
+                    updateElement(aviatorBelow1_5xEl, `${below1_5} (${below1_5Percent}%)`);
+                    updateElement(aviatorBelow2_0xEl, `${below2_0} (${below2_0Percent}%)`);
+                    updateElement(aviatorAbove5_0xEl, `${above5_0} (${above5_0Percent}%)`);
+                    updateElement(aviatorAbove10_0xEl, `${above10_0} (${above10_0Percent}%)`);
+                    updateElement(aviatorLowStreakEl, currentLowStreak);
+                    updateElement(aviatorHighStreakEl, currentHighStreak);
+                    updateElement(aviatorSimWinsEl, simWins);
+                    updateElement(aviatorSimLossesEl, simLosses);
+                    updateElement(aviatorSimWinRateEl, `${winRate}%`);
+
+                    // Update History List Display
+                    if(aviatorHistoryList) {
+                       aviatorHistoryList.innerHTML = multipliers.map(m => `<li>${m.toFixed(2)}x</li>`).join("");
+                    }
+
+                    // Show results area
+                    aviatorResultsArea.classList.remove("hidden");
+                    // Use requestAnimationFrame for smoother fade-in trigger
+                    requestAnimationFrame(() => {
+                        aviatorResultsArea.classList.add("fade-in");
+                    });
+
+                    // Save history if requested
+                    if (save) {
+                       saveAviatorHistory(input); // Save the potentially truncated input
+                    }
+                }
+
+
+                function visualizeAviatorData() {
+                     if (!aviatorHistoryInput || !aviatorErrorMsg) {
+                          console.error("Cannot visualize: Input or error message element missing.");
+                          return;
+                     }
+                     aviatorErrorMsg.textContent = ''; // Clear previous errors
+
+                     const multipliers = aviatorHistoryInput.value.trim().split('\n')
+                        .map(line => parseFloat(line.replace(/[xX\s]/g, "")))
+                        .filter(num => !isNaN(num) && num >= 1.0); // Get valid multipliers
+
+                    if (multipliers.length > 0) {
+                        // Reverse the order for chronological display (oldest first on chart)
+                       renderChart(multipliers.reverse(), 'Aviator Crash History (Oldest -> Newest)');
+                    } else {
+                        aviatorErrorMsg.textContent = "No valid data points (>= 1.0) found in history to visualize.";
+                    }
+                }
+
+
+                // --- Chart Rendering Logic ---
+                function renderChart(data, label = 'Results') {
+                    // Ensure canvas elements exist
+                    if (!canvasContainer || !predictionChartCanvas || !closeCanvasBtn) {
+                         console.error("Chart container or canvas element not found.");
+                         return; // Cannot render chart
+                    }
+                    const ctx = predictionChartCanvas.getContext('2d');
+                    if (!ctx) {
+                        console.error("Failed to get 2D context from chart canvas.");
+                        return;
+                    }
+
+                    // Destroy previous chart instance if it exists
+                    if (chartInstance) {
+                       try {
+                           chartInstance.destroy();
+                       } catch (e) { console.error("Error destroying previous chart:", e); }
+                       chartInstance = null;
+                    }
+
+                    try {
+                        chartInstance = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: data.map((_, i) => (i + 1).toString()), // Simple numerical labels
+                                datasets: [{
+                                    label: label,
+                                    data: data,
+                                    borderColor: 'rgba(59, 130, 246, 1)', // Blue line
+                                    backgroundColor: 'rgba(59, 130, 246, 0.2)', // Light blue fill
+                                    borderWidth: 1.5,
+                                    fill: true,
+                                    tension: 0.1 // Slight curve
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false, // Allow chart to adapt height
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: { color: 'white' }, // White y-axis labels
+                                        grid: { color: 'rgba(255, 255, 255, 0.1)' } // Light grid lines
+                                    },
+                                    x: {
+                                         ticks: { color: 'white' }, // White x-axis labels
+                                         grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                                    }
+                                },
+                                plugins: {
+                                    legend: {
+                                        labels: { color: 'white' } // White legend text
+                                    },
+                                    tooltip: {
+                                         bodyColor: 'white',
+                                         titleColor: 'white',
+                                         backgroundColor: 'rgba(0, 0, 0, 0.7)'
+                                    }
+                                }
+                            }
+                        });
+                        canvasContainer.classList.add('active'); // Show the canvas container popup
+                    } catch (e) {
+                         console.error("Error creating chart:", e);
+                         alert("Failed to create chart visualization.");
+                    }
+                }
+
+
+                // Chart Popup Close Button Listener
+                 if (closeCanvasBtn) {
+                     closeCanvasBtn.addEventListener('click', () => {
+                        if (canvasContainer) canvasContainer.classList.remove('active');
+                        // Destroy chart instance when closing to free memory
+                        if (chartInstance) {
+                            try {
+                               chartInstance.destroy();
+                            } catch(e) { console.error("Error destroying chart on close:", e); }
+                            chartInstance = null;
+                        }
+                    });
+                 } else { console.error("Close Canvas Button not found!"); }
+
+
+                // --- Final Initialization Step ---
+                console.log("Predict VIP Script Setup Complete.");
+
+                // Ensure initial state of popups/buttons is correct
+                if (winMenuContainer) winMenuContainer.classList.add('hidden');
+                if (canvasContainer) canvasContainer.classList.remove('active');
+                if (startPredictionButton) startPredictionButton.classList.remove('hidden');
+
+                // Make sure the initially active tab's content is displayed correctly
+                const initialActiveTabButton = document.querySelector('.tab-button.active');
+                if (initialActiveTabButton) {
+                   switchTab(initialActiveTabButton.getAttribute('data-tab'));
+                } else {
+                   // Fallback if somehow no tab is marked active initially
+                   switchTab('homepage');
+                }
+
+            }); // End DOMContentLoaded
+        })(); // End IIFE
+    </script>
+
+</body>
+</html>
+<ALOASK-SEPARATE-EDITORS><ALOASK-SEPARATE-EDITORS>

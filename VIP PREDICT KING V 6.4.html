@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP_PREDICT_KING_V 6.4 (Input/Button Merged)</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+    <style>
+        /* --- V6.4 Styles --- */
+        :root { /* Keep color variables etc. */ --bg-dark: #1a1a2e; --card-dark: #1f2041; --primary-accent: #4ecca3; --secondary-accent: #ff6b6b; --text-light: #e0e0e0; --text-muted-dark: #8a8a8a; --border-dark: #3a3a5e; --success-color: #28a745; --danger-color: #dc3545; --warning-color: #f39c12; --pending-color: #6c757d; --font-family: 'Poppins', sans-serif; --border-radius: 8px; --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+        * { margin: 0; padding: 0; box-sizing: border-box; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        body { font-family: var(--font-family); background-color: var(--bg-dark); color: var(--text-light); padding: 20px; position: relative; min-height: 100vh; }
+        #particles-js { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background-color: var(--bg-dark); }
+        .main-container { width: 95%; max-width: 1200px; margin: 20px auto; position: relative; z-index: 1; animation: fadeIn 0.8s ease-in-out; }
+        h1 { color: var(--text-light); margin-bottom: 20px; text-align: center; font-weight: 600; }
+        h2 { color: var(--primary-accent); font-weight: 600; margin-bottom: 15px; font-size: 1.3rem; display: flex; align-items: center; gap: 8px; }
+        h3 { color: var(--text-light); font-weight: 500; margin-bottom: 10px; font-size: 1.1rem; }
+        p { line-height: 1.6; color: var(--text-muted-dark); } a { color: var(--primary-accent); text-decoration: none; } a:hover { text-decoration: underline; }
+        .main-nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; padding: 10px; background-color: rgba(31, 32, 65, 0.5); border-radius: var(--border-radius); }
+        .nav-button { background-color: transparent; border: 1px solid var(--border-dark); color: var(--text-muted-dark); padding: 8px 15px; border-radius: 5px; cursor: pointer; transition: background-color 0.2s, color 0.2s; font-size: 0.95rem; font-weight: 500; }
+        .nav-button:hover, .nav-button.active { background-color: var(--primary-accent); color: var(--bg-dark); border-color: var(--primary-accent); }
+        .content-view { display: none; } .content-view.active { display: block; }
+        .setup-controls { background-color: transparent; padding: 10px 0; border-radius: 0; box-shadow: none; margin-bottom: 25px; display: flex; flex-wrap: wrap; gap: 15px 25px; justify-content: center; align-items: center; border-bottom: 1px solid var(--border-dark); }
+        .setup-control-group { display: flex; align-items: center; gap: 8px; }
+        .setup-controls label { font-weight: 500; color: var(--primary-accent); margin: 0; white-space: nowrap; }
+        .setup-controls select { background-color: rgba(31, 32, 65, 0.8); color: var(--text-light); border: 1px solid var(--border-dark); border-radius: 5px; padding: 8px 12px; font-family: var(--font-family); min-width: 160px; }
+        .setup-controls select option { background-color: var(--card-dark); color: var(--text-light); }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 25px; }
+        .dashboard-card { background-color: var(--card-dark); padding: 20px 25px; border-radius: var(--border-radius); box-shadow: var(--card-shadow); border: 1px solid var(--border-dark); }
+        .static-content-card { background-color: var(--card-dark); padding: 25px 30px; border-radius: var(--border-radius); box-shadow: var(--card-shadow); border: 1px solid var(--border-dark); margin-bottom: 25px; }
+        #statisticsCard .stats-container { display: flex; justify-content: space-around; text-align: center; margin-top: 15px; }
+        #statisticsCard .stat-item span { display: block; font-size: 1.8rem; font-weight: 600; margin-bottom: 5px; }
+        #statisticsCard .stat-item span#statsWins { color: var(--success-color); } #statisticsCard .stat-item span#statsLosses { color: var(--danger-color); } #statisticsCard .stat-item span#statsPending { color: var(--pending-color); }
+        #statisticsCard .stat-item p { color: var(--text-muted-dark); font-size: 0.9rem; }
+        .interval-tabs { display: flex; background-color: rgba(0,0,0,0.2); border-radius: var(--border-radius); overflow: hidden; margin-bottom: 20px; }
+        .tab-button { flex-grow: 1; padding: 10px 15px; background-color: transparent; border: none; color: var(--text-muted-dark); cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease; font-family: var(--font-family); font-weight: 500; font-size: 0.95rem; text-align: center; }
+        .tab-button.active { background-color: var(--primary-accent); color: var(--bg-dark); }
+        .tab-button:not(:last-child) { border-right: 1px solid var(--border-dark); }
+
+        /* --- UPDATED Period Input Group --- */
+        .period-input-group {
+            display: flex;
+            align-items: stretch; /* Make items same height */
+            border-radius: var(--border-radius); /* Apply radius to group */
+            border: 1px solid var(--border-dark); /* Add border to the group */
+            overflow: hidden; /* Clip children to rounded corners */
+            background-color: rgba(0,0,0,0.2); /* Apply background to group */
+        }
+        .period-input-group input[type="text"].period-input {
+            flex-grow: 1;
+            background-color: transparent;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            text-align: left;
+            padding: 10px 15px;
+            height: auto;
+            letter-spacing: 1px;
+            border-radius: 0; /* Remove individual radius */
+            min-height: 40px; /* Ensure minimum height */
+        }
+         .period-input-group input[type="text"].period-input::placeholder { color: var(--text-muted-dark); opacity: 0.7; }
+         .period-input-group input[type="text"].period-input:focus { box-shadow: none; outline: none; }
+        .period-input-group button { /* AI Predict Button */
+            background-color: var(--primary-accent);
+            color: var(--bg-dark);
+            border-radius: 0; /* Remove individual radius */
+            border: none;
+            border-left: 1px solid var(--border-dark); /* Separator line */
+            padding: 8px 18px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            flex-shrink: 0;
+            box-shadow: none;
+            cursor: pointer;
+            height: auto; /* Match flex height */
+        }
+        .period-input-group button:hover:not(:disabled) { opacity: 0.9; transform: none; }
+        /* --- End Updated Period Input Group --- */
+
+        #aiLog { font-style: italic; color: var(--text-muted-dark); margin-top: 10px; font-size: 0.9em; text-align: center; }
+        #historyCard { grid-column: 1 / -1; }
+        #historyCard #historyList { list-style: none; padding: 0; margin-top: 15px; max-height: 400px; overflow-y: auto; }
+        #historyCard #historyList::-webkit-scrollbar { width: 6px; } #historyCard #historyList::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 3px;} #historyCard #historyList::-webkit-scrollbar-thumb { background: var(--text-muted-dark); border-radius: 3px;} #historyCard #historyList::-webkit-scrollbar-thumb:hover { background: var(--primary-accent); }
+        #historyList .history-item { background-color: rgba(0,0,0,0.15); padding: 12px 15px; border-radius: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-dark); flex-wrap: wrap; gap: 10px; }
+        .history-item .info { font-size: 0.9rem; color: var(--text-muted-dark); flex-grow: 1; }
+        .history-item .info strong { color: var(--text-light); font-weight: 500;} .history-item .info .prediction-details { margin-top: 3px; display: inline-block; } .history-item .info .bet-level-hist { margin-left: 15px; color: var(--warning-color);}
+        .history-item .controls { display: flex; align-items: center; gap: 8px; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; text-align: center; min-width: 70px; }
+        .status-badge.Win { background-color: var(--success-color); color: white; } .status-badge.Lost { background-color: var(--danger-color); color: white; } .status-badge.Pending { background-color: var(--pending-color); color: white; }
+        .history-item .controls button { background-color: transparent; border: 1px solid var(--border-dark); color: var(--text-muted-dark); padding: 3px 6px; font-size: 0.8em; border-radius: 4px; line-height: 1; cursor: pointer; }
+        .history-item .controls button:hover { background-color: rgba(255,255,255,0.1); }
+        .history-item .controls button .fa-check { color: var(--success-color); } .history-item .controls button .fa-xmark { color: var(--danger-color); }
+        #clearHistoryButton { background-color: var(--secondary-accent); color: white; padding: 8px 15px; font-size: 0.9rem; border-radius: 5px;}
+        .static-content-card ul { list-style: none; padding-left: 0; }
+        .static-content-card li { margin-bottom: 15px; padding: 10px; background-color: rgba(0,0,0,0.1); border-radius: 5px; }
+        .static-content-card li strong { color: var(--primary-accent); display: block; margin-bottom: 5px;}
+        .static-content-card li a { word-break: break-all; }
+        .color-green, .color-red, .color-violet { padding: 2px 5px; border-radius: 3px; font-size: 0.9em; margin-left: 5px; color: white;} .color-green { background-color: var(--green-color);} .color-red { background-color: var(--red-color);} .color-violet { background-color: #8a4cac;}
+        .size-big { color: var(--primary-accent); font-weight: 500; margin-left: 5px;} .size-small { color: var(--warning-color); font-weight: 500; margin-left: 5px;}
+        .mockup-form-group { margin-bottom: 15px; } .mockup-form-group label { display: block; margin-bottom: 5px; color: var(--text-muted-dark); font-size: 0.9rem; } .mockup-form-group input[type="text"], .mockup-form-group input[type="email"], .mockup-form-group input[type="tel"], .mockup-form-group input[type="password"] { width: 100%; padding: 10px; background-color: rgba(0,0,0,0.2); border: 1px solid var(--border-dark); border-radius: 5px; color: var(--text-light); font-family: var(--font-family); }
+        .mockup-button { display: inline-block; background-color: var(--primary-accent); color: var(--bg-dark); border: none; padding: 10px 20px; border-radius: 5px; font-weight: 600; cursor: pointer; text-align: center; } .mockup-button:hover { opacity: 0.9; } .mockup-button.disabled { background-color: var(--text-muted-dark); cursor: not-allowed; }
+        .mockup-user-table { width: 100%; border-collapse: collapse; margin-top: 20px; } .mockup-user-table th, .mockup-user-table td { padding: 10px 12px; border: 1px solid var(--border-dark); text-align: left; font-size: 0.9rem; } .mockup-user-table th { background-color: rgba(0,0,0,0.2); color: var(--primary-accent); font-weight: 600; } .mockup-user-table td { color: var(--text-muted-dark); } .mockup-user-table td .role-admin { color: var(--warning-color); font-weight: bold; } .mockup-user-table td .role-user { color: var(--text-light); } .mockup-user-table td .status-active { color: var(--success-color); } .mockup-user-table td .status-banned { color: var(--danger-color); } .mockup-user-table .actions button { background: none; border: none; color: var(--primary-accent); cursor: pointer; padding: 2px; margin: 0 3px; font-size: 1.1em; opacity: 0.6; cursor: not-allowed; } .mockup-user-table .actions button.delete { color: var(--danger-color); }
+        @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } h1 { font-size: 1.6rem; } h2 { font-size: 1.2rem; } .setup-controls { flex-direction: column; align-items: stretch; gap: 10px; } .setup-controls .setup-control-group { justify-content: space-between;} .setup-controls select { min-width: 150px; } .mockup-user-table { font-size: 0.8rem; } .mockup-user-table th, .mockup-user-table td { padding: 8px; } }
+        @media (max-width: 480px) { body { padding: 10px; } .main-container { width: 100%; margin-top: 10px; } .static-content-card { padding: 15px;} h1 { font-size: 1.4rem; } h2 { font-size: 1.1rem; } #statisticsCard .stat-item span { font-size: 1.5rem; } #statisticsCard .stat-item p { font-size: 0.8rem; } .tab-button { font-size: 0.9rem; padding: 8px 10px;} .period-input-group input[type="text"].period-input { font-size: 1rem; } .period-input-group button { font-size: 0.9rem; padding: 8px 12px;} #historyList .history-item { flex-direction: column; align-items: flex-start; } .history-item .controls { margin-top: 8px; align-self: flex-end; } .mockup-user-table { display: block; overflow-x: auto; } }
+
+    </style>
+</head>
+
+<body>
+    <div id="particles-js"></div>
+
+    <div class="main-container">
+        <h1>VIP PREDICT KING <span style="font-weight: 300;">V 6.4</span></h1>
+
+        <nav class="main-nav">
+            <button class="nav-button active" onclick="showView('predictorView')"><i class="fa-solid fa-robot"></i> Predictor</button>
+            <button class="nav-button" onclick="showView('registerView')"><i class="fa-solid fa-link"></i> Register Links</button>
+            <button class="nav-button" onclick="showView('infoView')"><i class="fa-solid fa-circle-info"></i> Info</button>
+            <button class="nav-button" onclick="showView('contactView')"><i class="fa-solid fa-envelope"></i> Contact</button>
+            <button class="nav-button" onclick="showView('adminLoginView')"><i class="fa-solid fa-user-shield"></i> Admin Panel</button>
+        </nav>
+
+        <div id="predictorView" class="content-view active">
+            <div class="setup-controls">
+                <div class="setup-control-group">
+                    <label for="platformSelect"><i class="fa-solid fa-gamepad"></i> Platform:</label>
+                    <select id="platformSelect" onchange="handleSetupChange()">
+                        <option value="55Club">55 Club</option>
+                        <option value="TCLottery">TC Lottery</option>
+                        <option value="BigDaddy">Big Daddy</option>
+                        <option value="91Club">91 Club</option>
+                    </select>
+                </div>
+                <div class="setup-control-group">
+                     <label for="predictionTypeSelect"><i class="fa-solid fa-bullseye"></i> Type:</label>
+                     <select id="predictionTypeSelect" onchange="handleSetupChange()">
+                         <option value="color">Color</option>
+                         <option value="size">Big/Small</option>
+                         <option value="number">Number</option>
+                     </select>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div id="statisticsCard" class="dashboard-card"><h2><i class="fa-solid fa-chart-pie"></i> Statistics</h2><p style="color: var(--text-muted-dark); font-size: 0.9em;">Performance</p><div class="stats-container"><div class="stat-item"><span id="statsWins">0</span><p>Wins</p></div><div class="stat-item"><span id="statsLosses">0</span><p>Losses</p></div><div class="stat-item"><span id="statsPending">0</span><p>Pending</p></div></div><div style="text-align: center; color: var(--text-muted-dark); margin-top: 20px; font-size: 0.8em;">(Chart placeholder)</div></div>
+                <div id="predictionCard" class="dashboard-card">
+                     <h2><i class="fa-solid fa-wand-magic-sparkles"></i> AI Prediction</h2>
+                     <p style="color: var(--text-muted-dark); font-size: 0.9em; margin-top: -10px; margin-bottom: 15px;">Generate Wingo predictions</p>
+                     <div id="intervalTabs" class="interval-tabs"></div>
+                     <div class="period-input-group">
+                         <input type="text" id="periodNumberInput" class="period-input" placeholder="Period (Last 4 Digits)" maxlength="4" pattern="[0-9]*" inputmode="numeric" oninput="handlePeriodInput(this)">
+                         <button onclick="predict()"><i class="fa-solid fa-bolt"></i></button> </div>
+                      <div id="aiLog" class="log-message" style="margin-top: 10px;"></div>
+                </div>
+            </div><div id="historyCard" class="dashboard-card"><h2><i class="fa-solid fa-list-check"></i> Prediction History</h2><p style="color: var(--text-muted-dark); font-size: 0.9em; margin-top: -10px; margin-bottom: 15px;">Recent predictions for <span id="historyContextPlatform">N/A</span> <span id="historyContextInterval">N/A</span></p><ul id="historyList"></ul><div style="text-align: center; margin-top: 20px;"><button id="clearHistoryButton" onclick="clearHistory()"><i class="fa-solid fa-trash-can"></i> Clear History</button></div></div>
+        </div><div id="registerView" class="content-view static-content-card"><h2><i class="fa-solid fa-link"></i> Register Platform Links</h2><p>Use the links below to register on the platforms:</p><br><ul><li><strong>TC Lottery:</strong> <a href="https://tcandroid.download/register?invite_code=D23DC8536481" target="_blank" rel="noopener noreferrer">https://tcandroid.download/register?invite_code=D23DC8536481</a></li><li><strong>Big Daddy:</strong> <a href="https://www.bdg-0.com//#/register?invitationCode=3783710836033" target="_blank" rel="noopener noreferrer">https://www.bdg-0.com//#/register?invitationCode=3783710836033</a></li><li><strong>55 Club:</strong> <a href="https://www.55234.in/#/register?invitationCode=725831007259" target="_blank" rel="noopener noreferrer">https://www.55234.in/#/register?invitationCode=725831007259</a></li><li><strong>91 Club:</strong> <a href="https://www.91appu.com/#/register?invitationCode=8828612752009" target="_blank" rel="noopener noreferrer">https://www.91appu.com/#/register?invitationCode=8828612752009</a></li></ul></div>
+        <div id="infoView" class="content-view static-content-card"><h2><i class="fa-solid fa-circle-info"></i> Information</h2><p>This tool provides AI-based predictions for Wingo games. Predictions are not guaranteed; play responsibly.</p><br><p>Select platform, type, interval, enter the last 4 period digits, and click Predict.</p><p>Mark Win/Loss in the history list for pending items.</p></div>
+        <div id="contactView" class="content-view static-content-card"><h2><i class="fa-solid fa-envelope"></i> Contact Us</h2><p>For support:</p><p><strong>Email:</strong> <a href="mailto:support@example.com">support@example.com</a> (Replace)</p><p><strong>Telegram:</strong> <a href="https://t.me/your_support_channel" target="_blank" rel="noopener noreferrer">@your_support_channel</a> (Replace)</p></div>
+
+        <div id="adminLoginView" class="content-view static-content-card"><h2><i class="fa-solid fa-user-shield"></i> Admin Panel Login (Mockup)</h2><p style="color: var(--warning-color); font-size: 0.9em; margin-bottom: 15px;">Note: This is a non-functional visual mockup. A real admin panel requires a backend server.</p><div class="mockup-form-group"><label for="adminUser">Username:</label><input type="text" id="adminUser" placeholder="admin"></div><div class="mockup-form-group"><label for="adminPass">Password:</label><input type="password" id="adminPass" placeholder="********"></div><button class="mockup-button disabled" disabled>Login (Disabled)</button><br><br><p style="font-size: 0.9em; margin-top: 15px;">Admin features like User Management and Signup require a backend.</p><button class="mockup-button disabled" onclick="showView('adminUserMgmtView')" style="margin-top: 5px;" disabled>View User Mgt (Mockup)</button></div>
+        <div id="adminUserMgmtView" class="content-view static-content-card"><h2><i class="fa-solid fa-users-gear"></i> User Management (Mockup)</h2><p style="color: var(--warning-color); font-size: 0.9em; margin-bottom: 15px;">Note: This is a non-functional visual mockup. Real user management requires a backend server and database.</p><button class="mockup-button disabled" style="font-size: 0.9em; padding: 8px 15px; margin-bottom: 15px;" disabled><i class="fa-solid fa-user-plus"></i> Create User (Disabled)</button><div style="overflow-x: auto;"><table class="mockup-user-table"><thead><tr><th>Username</th><th>Email</th><th>Mobile</th><th>Role</th><th>Status</th><th>Last Login</th><th>IP</th><th>MAC</th><th>Actions</th></tr></thead><tbody><tr><td>admin_user</td><td>admin@example.com</td><td>-</td><td><span class="role-admin">Admin</span></td><td><span class="status-active">Active</span></td><td>2025-03-30 03:20:00</td><td>192.168.1.5</td><td>AA:BB:CC:11:22:33</td><td class="actions"><button title="Change Role" disabled><i class="fa-solid fa-user-tag"></i></button><button title="Ban/Unban" disabled><i class="fa-solid fa-user-lock"></i></button><button title="Delete" class="delete" disabled><i class="fa-solid fa-trash-can"></i></button></td></tr><tr><td>test_user_1</td><td>user1@email.com</td><td>+1234567890</td><td><span class="role-user">User</span></td><td><span class="status-active">Active</span></td><td>2025-03-29 10:15:00</td><td>10.0.0.50</td><td>DD:EE:FF:44:55:66</td><td class="actions"><button title="Change Role" disabled><i class="fa-solid fa-user-tag"></i></button><button title="Ban/Unban" disabled><i class="fa-solid fa-user-lock"></i></button><button title="Delete" class="delete" disabled><i class="fa-solid fa-trash-can"></i></button></td></tr><tr><td>banned_user</td><td>banned@test.net</td><td>-</td><td><span class="role-user">User</span></td><td><span class="status-banned">Banned</span></td><td>2025-03-28 11:00:00</td><td>172.16.0.10</td><td>11:22:33:AA:BB:CC</td><td class="actions"><button title="Change Role" disabled><i class="fa-solid fa-user-tag"></i></button><button title="Ban/Unban" disabled><i class="fa-solid fa-user-lock"></i></button><button title="Delete" class="delete" disabled><i class="fa-solid fa-trash-can"></i></button></td></tr></tbody></table></div><button class="nav-button" onclick="showView('adminLoginView')" style="margin-top: 20px;"><i class="fa-solid fa-arrow-left"></i> Back to Admin Login</button></div>
+
+    </div> <script>
+        // --- Configuration & State Variables ---
+        const HISTORY_LIMIT = 15; const CONSECUTIVE_LOSS_THRESHOLD = 2; const BASE_BET_LEVEL = 1; const MARTINGALE_MULTIPLIER = 2;
+        let predictionHistory = []; let immediateConsecutiveLosses = 0; let currentBetLevel = BASE_BET_LEVEL;
+        let selectedPlatform = ''; let selectedInterval = ''; let selectedPredictionType = '';
+        let applyHistoricalCorrection = false; let periodInput;
+        const platformIntervals = { '55Club': ['30', '60', '180'], 'TCLottery': ['30', '60'], 'BigDaddy': ['30', '60'], '91Club': ['60', '180', '300'] };
+
+        // --- Initialization & UI ---
+        document.addEventListener('DOMContentLoaded', () => { periodInput = document.getElementById('periodNumberInput'); handleSetupChange(); loadHistory(); initializeParticles(); showView('predictorView'); });
+        function initializeParticles() { particlesJS('particles-js', { "particles": { "number": { "value": 40,"density": { "enable": true,"value_area": 800 } },"color": { "value": "#ffffff" },"shape": { "type": "circle" },"opacity": { "value": 0.2,"random": false },"size": { "value": 2,"random": true },"line_linked": { "enable": false },"move": { "enable": true,"speed": 3,"direction": "none","out_mode": "out" } },"interactivity": { "detect_on": "canvas","events": { "onhover": { "enable": false },"onclick": { "enable": false },"resize": true } },"retina_detect": true }); }
+        function showView(viewId) { document.querySelectorAll('.content-view').forEach(view => view.classList.remove('active')); const targetView = document.getElementById(viewId); if (targetView) targetView.classList.add('active'); document.querySelectorAll('.nav-button').forEach(btn => { btn.classList.remove('active'); if (btn.getAttribute('onclick')?.startsWith(`showView('${viewId}'`)) btn.classList.add('active'); }); console.log(`Showing view: ${viewId}`); if (viewId === 'adminLoginView' || viewId === 'adminUserMgmtView') console.warn("Displaying non-functional Admin Panel mockup."); }
+        function handleSetupChange() { selectedPlatform = document.getElementById('platformSelect').value; selectedPredictionType = document.getElementById('predictionTypeSelect').value; console.log(`Setup Changed - Platform: ${selectedPlatform}, Type: ${selectedPredictionType}`); updateIntervalTabs(); }
+        function updateIntervalTabs() { const tabsContainer = document.getElementById('intervalTabs'); const intervals = platformIntervals[selectedPlatform] || ['60']; tabsContainer.innerHTML = ''; let intervalToSelect = intervals[0]; if (intervals.includes(selectedInterval)) intervalToSelect = selectedInterval; else selectedInterval = intervalToSelect; intervals.forEach(intervalSec => { const button = document.createElement('button'); button.className = 'tab-button'; const intervalMin = parseInt(intervalSec, 10) / 60; let intervalText = ''; if (intervalSec === '30') intervalText = '30s'; else if (intervalSec === '60') intervalText = '1m'; else if (intervalSec === '180') intervalText = '3m'; else if (intervalSec === '300') intervalText = '5m'; else if (intervalSec === '600') intervalText = '10m'; else intervalText = `${intervalSec}s`; button.textContent = intervalText; button.dataset.interval = intervalSec; button.onclick = () => selectIntervalTab(intervalSec); if (intervalSec === intervalToSelect) button.classList.add('active'); tabsContainer.appendChild(button); }); selectIntervalTab(intervalToSelect); }
+        function selectIntervalTab(interval) { if (selectedInterval !== interval) { selectedInterval = interval; console.log(`Interval selected: ${interval} seconds`); } document.querySelectorAll('#intervalTabs .tab-button').forEach(tab => tab.classList.toggle('active', tab.dataset.interval === interval)); updateHistoryContext(); }
+        function handlePeriodInput(inputElement) { let value = inputElement.value.replace(/\D/g, ''); if (value.length > 4) value = value.slice(-4); inputElement.value = value; }
+
+        // --- Core Logic & History/Stats Display (Logic Unchanged) ---
+        function predict() { const periodStr = periodInput.value; const aiLogDiv = document.getElementById('aiLog'); aiLogDiv.textContent = ''; if (!periodStr || periodStr.length !== 4 || isNaN(periodStr)) { alert("Please enter exactly 4 digits for the period number."); return; } const now = new Date(); const datePrefix = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`; const fullPeriodStr = datePrefix + periodStr; const fullPeriodNumber = parseInt(fullPeriodStr, 10); console.log(`Using full period ${fullPeriodNumber}`); let { resultNumber, predictedColor, predictedSize } = calculatePrediction(fullPeriodNumber); let predictionValue, predictionLabel = ''; if (immediateConsecutiveLosses >= CONSECUTIVE_LOSS_THRESHOLD) { aiLogDiv.textContent += `AI: Reversal applied. `; ({ predictedColor, predictedSize } = applyReversal(predictedColor, predictedSize)); immediateConsecutiveLosses = 0; } if (applyHistoricalCorrection) { aiLogDiv.textContent += `AI: Correction applied. `; ({ predictedColor, predictedSize } = applyReversal(predictedColor, predictedSize)); applyHistoricalCorrection = false; } switch (selectedPredictionType) { case 'number': predictionValue = resultNumber; predictionLabel = `Num: ${resultNumber}`; break; case 'color': predictionValue = predictedColor; predictionLabel = `<span class="color-${predictedColor.toLowerCase()}">${predictedColor}</span>`; break; case 'size': predictionValue = predictedSize; predictionLabel = `<span class="size-${predictedSize.toLowerCase()}">${predictedSize}</span>`; break; default: return; } const prediction = { periodDisplay: periodStr, platform: selectedPlatform, interval: selectedInterval, type: selectedPredictionType, predictedValue: predictionValue, predictedLabel: predictionLabel, betLevel: currentBetLevel, status: "Pending", timestamp: Date.now() }; predictionHistory.unshift(prediction); if (predictionHistory.length > HISTORY_LIMIT) predictionHistory.pop(); updateStatistics(); updateHistoryList(); saveHistory(); checkHistoricalLosses(); console.warn("Prediction made. Mark Win/Loss using buttons in the history list for Pending items."); }
+        function handleManualMarkForRow(timestamp, isWin) { const predictionIndex = predictionHistory.findIndex(p => p.timestamp === timestamp && p.status === 'Pending'); if (predictionIndex === -1) return; const prediction = predictionHistory[predictionIndex]; prediction.status = isWin ? "Win" : "Lost"; prediction.actualResult = { manualMark: true }; console.log(`Period ${prediction.periodDisplay}: Marked as ${prediction.status}.`); if (predictionIndex === 0) { if (isWin) { immediateConsecutiveLosses = 0; currentBetLevel = BASE_BET_LEVEL; } else { immediateConsecutiveLosses++; currentBetLevel *= MARTINGALE_MULTIPLIER; } try { let currentPeriodVal = parseInt(periodInput.value, 10); if (!isNaN(currentPeriodVal)) { let nextPeriodVal = currentPeriodVal + 1; if (nextPeriodVal > 9999) nextPeriodVal = 1; periodInput.value = nextPeriodVal.toString().padStart(4, '0'); periodInput.focus(); periodInput.select(); } } catch (e) { console.error("Error auto-incrementing period:", e); } } else { console.warn("Marking historical item."); } updateStatistics(); updateHistoryList(); saveHistory(); checkHistoricalLosses(); }
+        function calculatePrediction(fullPeriodNumber) { const lastFour = fullPeriodNumber % 10000; const resultNumber = ((lastFour ** 2) + (lastFour * 3) + fullPeriodNumber % 10) % 10; let predictedColor; if ([1, 3, 7, 9].includes(resultNumber)) predictedColor = "Green"; else if ([2, 4, 6, 8].includes(resultNumber)) predictedColor = "Red"; else predictedColor = "Violet"; const predictedSize = (resultNumber >= 5) ? "Big" : "Small"; return { resultNumber, predictedColor, predictedSize }; }
+        function applyReversal(color, size) { const reversedColor = color === "Red" ? "Green" : "Red"; const reversedSize = size === "Big" ? "Small" : "Big"; return { predictedColor: reversedColor, predictedSize: reversedSize }; }
+        function checkHistoricalLosses() { let consecutiveLosses = 0; applyHistoricalCorrection = false; for (const prediction of predictionHistory) { if (prediction.status === "Lost") consecutiveLosses++; else if (prediction.status === "Win") consecutiveLosses = 0; if (consecutiveLosses >= CONSECUTIVE_LOSS_THRESHOLD) { console.log(`AI Check: Found ${consecutiveLosses} historical losses.`); document.getElementById('aiLog').textContent += ` Correction planned.`; applyHistoricalCorrection = true; break; } } }
+        function updateStatistics() { let wins = 0, losses = 0, pending = 0; predictionHistory.forEach(p => { if (p.status === 'Win') wins++; else if (p.status === 'Lost') losses++; else if (p.status === 'Pending') pending++; }); document.getElementById('statsWins').textContent = wins; document.getElementById('statsLosses').textContent = losses; document.getElementById('statsPending').textContent = pending; }
+        function updateHistoryContext() { document.getElementById('historyContextPlatform').textContent = selectedPlatform || 'N/A'; let intervalText = ''; if (selectedInterval === '30') intervalText = '30s'; else if (selectedInterval === '60') intervalText = '1m'; else if (selectedInterval === '180') intervalText = '3m'; else if (selectedInterval === '300') intervalText = '5m'; else if (selectedInterval === '600') intervalText = '10m'; else intervalText = selectedInterval ? `${selectedInterval}s` : 'N/A'; document.getElementById('historyContextInterval').textContent = intervalText; }
+        function updateHistoryList() { const historyList = document.getElementById('historyList'); historyList.innerHTML = ''; if (predictionHistory.length === 0) { historyList.innerHTML = '<li style="text-align: center; color: var(--text-muted-dark);">No history yet.</li>'; return; } predictionHistory.forEach(pred => { const item = document.createElement('li'); item.className = 'history-item'; const date = new Date(pred.timestamp); const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }); const dateString = date.toLocaleDateString(); const infoDiv = document.createElement('div'); infoDiv.className = 'info'; infoDiv.innerHTML = `<div><strong>Period ${pred.periodDisplay}</strong> <span style="font-size:0.8em; margin-left: 5px;">(${dateString}, ${timeString})</span></div> <div class="prediction-details"> Pred: ${pred.predictedLabel || 'N/A'} <span class="bet-level-hist">(${pred.betLevel}x)</span> </div>`; const controlsDiv = document.createElement('div'); controlsDiv.className = 'controls'; const statusBadge = document.createElement('span'); statusBadge.className = `status-badge ${pred.status}`; statusBadge.textContent = pred.status; controlsDiv.appendChild(statusBadge); if (pred.status === 'Pending') { const winBtn = document.createElement('button'); winBtn.innerHTML = '<i class="fa-solid fa-check"></i>'; winBtn.onclick = (e) => { e.stopPropagation(); handleManualMarkForRow(pred.timestamp, true); }; const lossBtn = document.createElement('button'); lossBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>'; lossBtn.onclick = (e) => { e.stopPropagation(); handleManualMarkForRow(pred.timestamp, false); }; controlsDiv.appendChild(winBtn); controlsDiv.appendChild(lossBtn); } item.appendChild(infoDiv); item.appendChild(controlsDiv); historyList.appendChild(item); }); }
+
+        // --- Local Storage (Use new key v6.3) ---
+        function saveHistory() { try { const stateToSave = { history: predictionHistory, consecutiveLosses: immediateConsecutiveLosses, betLevel: currentBetLevel }; localStorage.setItem('wingoPredictorHistory_v6_3', JSON.stringify(stateToSave)); } catch (e) { console.error("Error saving state:", e); } }
+        function loadHistory() { try { const savedState = localStorage.getItem('wingoPredictorHistory_v6_3'); if (savedState) { const parsedState = JSON.parse(savedState); predictionHistory = parsedState.history || []; if (predictionHistory.length > HISTORY_LIMIT) predictionHistory = predictionHistory.slice(0, HISTORY_LIMIT); immediateConsecutiveLosses = parsedState.consecutiveLosses || 0; currentBetLevel = parsedState.betLevel || BASE_BET_LEVEL; console.log("Loaded history V6.3"); } else { predictionHistory = []; immediateConsecutiveLosses = 0; currentBetLevel = BASE_BET_LEVEL; console.log("No saved history V6.3 found."); } } catch (e) { console.error("Error loading state:", e); predictionHistory = []; immediateConsecutiveLosses = 0; currentBetLevel = BASE_BET_LEVEL; } updateStatistics(); updateHistoryList(); checkHistoricalLosses(); }
+        function clearHistory() { if (confirm("Are you sure?")) { predictionHistory = []; immediateConsecutiveLosses = 0; currentBetLevel = BASE_BET_LEVEL; applyHistoricalCorrection = false; updateStatistics(); updateHistoryList(); localStorage.removeItem('wingoPredictorHistory_v6_3'); document.getElementById('aiLog').textContent = ''; if(periodInput) periodInput.value = ''; console.log("History cleared."); } }
+
+    </script>
+</body>
+</html>
